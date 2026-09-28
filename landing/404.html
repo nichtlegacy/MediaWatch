@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Page not found | MediaWatch</title>
+<meta name="robots" content="noindex, follow">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0a0a0c">
+<!-- GitHub Pages serves this file for any missing path, so every URL in it
+     must resolve from the site root. -->
+<base href="/">
+<script>
+  // The documentation used to live at nichtlegacy.github.io/MediaWatch/ and
+  // moved to /docs/ when the landing page took its place. GitHub forwards the
+  // old host to this domain with the path intact, so old links (README, issue
+  // template, the 1.x migration hint the bot logs) land here; send them on.
+  (function () {
+    var m = location.pathname.match(/^\/(?:MediaWatch\/)?((?:getting-started|deployment|configuration|usage|operations|reference|assets)(?:\/.*)?)$/);
+    if (m) location.replace('/docs/' + m[1] + location.search + location.hash);
+  })();
+</script>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="icon-32.png" type="image/png" sizes="32x32">
+<link rel="icon" href="favicon.ico" sizes="48x48">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+
+<main class="notfound">
+  <div class="wrap">
+    <p class="eyebrow">Error 404</p>
+    <h1>Nothing here.</h1>
+    <p class="lede">That page does not exist. The dashboard demo is on the front page, everything else is in the documentation.</p>
+    <div class="actions">
+      <a class="pill solid lg" href="./">Back to MediaWatch</a>
+      <a class="pill ghost lg" href="docs/">Documentation</a>
+    </div>
+  </div>
+</main>
+
+</body>
+</html>

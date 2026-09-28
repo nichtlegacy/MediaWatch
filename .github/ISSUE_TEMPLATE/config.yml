@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/nichtlegacy/MediaWatch/security/advisories/new
+    about: Report privately. Do not open a public issue for a security problem.
+  - name: Upgrading from PlexWatch 1.x
+    url: https://mediawatch.nichtlegacy.com/docs/operations/upgrading-from-1x/
+    about: The 1.x to 2.0 upgrade path, including the required DISCORD_GUILD_ID.

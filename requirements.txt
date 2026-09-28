@@ -1,7 +1,12 @@
-discord.py
-plexapi
-requests
-aiohttp
-python-dateutil
-uptime_kuma_api
-python-dotenv
+# Runtime dependencies, pinned to compatible ranges so Docker builds stay
+# reproducible. Lower bound = version this release was tested against,
+# upper bound = next major.
+discord.py>=2.4,<3.0
+plexapi>=4.18,<5.0
+requests>=2.32,<3.0
+aiohttp>=3.14,<4.0
+python-dateutil>=2.9,<3.0
+uptime_kuma_api>=1.2,<2.0
+python-dotenv>=1.2,<2.0
+pyyaml>=6.0,<7.0
+matplotlib>=3.11,<4.0

@@ -1,0 +1,58 @@
+name: Feature request
+description: Suggest an addition or a change
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        MediaWatch is maintained by one person. Small, well-scoped ideas have a
+        much better chance than large ones, and an idea described here before
+        any code is written saves everyone time.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What are you trying to do that MediaWatch makes hard or impossible today?
+      placeholder: I want to ... but the dashboard only shows ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: What you would like it to do
+      description: >-
+        If it needs a config option, say what it should be called and what the
+        default should be. Defaults must not change the behaviour of an
+        existing install.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Which platform does this affect
+      options:
+        - Plex
+        - Jellyfin
+        - Both
+        - Neither / general
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives you considered
+      description: Existing options, another tool, a workaround you are using now.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: contribute
+    attributes:
+      label: Contribution
+      options:
+        - label: I would be willing to open a pull request for this.
+          required: false

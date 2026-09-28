@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 300">
+  <!-- Original artwork for the MediaWatch demo, not the film's key art:
+       a bowling lane running to a single pin, in 1970s alley colours. -->
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#1c1236"/><stop offset=".55" stop-color="#43215e"/><stop offset="1" stop-color="#6d2f4f"/></linearGradient>
+    <linearGradient id="lane" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#8a5a2b"/><stop offset="1" stop-color="#e0a45c"/></linearGradient>
+    <radialGradient id="ball" cx=".35" cy=".3" r=".8"><stop stop-color="#5b6bd6"/><stop offset=".6" stop-color="#27307a"/><stop offset="1" stop-color="#11153b"/></radialGradient>
+  </defs>
+  <rect width="200" height="300" fill="url(#sky)"/>
+  <g fill="#f6c177" opacity=".16"><circle cx="100" cy="150" r="118"/></g>
+  <polygon points="84,150 116,150 196,300 4,300" fill="url(#lane)"/>
+  <g stroke="#6b4220" stroke-width="1.2" opacity=".55">
+    <line x1="92" y1="150" x2="52" y2="300"/><line x1="100" y1="150" x2="100" y2="300"/><line x1="108" y1="150" x2="148" y2="300"/>
+  </g>
+  <g fill="#6b4220" opacity=".7"><path d="M92 214l4-9 4 9zM104 214l4-9 4 9zM80 214l4-9 4 9zM116 214l4-9 4 9z"/></g>
+  <path d="M100 118c-4 0-5 5-4 9 1 5-5 9-5 17 0 6 4 8 9 8s9-2 9-8c0-8-6-12-5-17 1-4 0-9-4-9Z" fill="#fbf4e6"/>
+  <rect x="95.6" y="129" width="8.8" height="2.4" fill="#d6423b"/><rect x="95.2" y="133" width="9.6" height="2.4" fill="#d6423b"/>
+  <circle cx="100" cy="262" r="30" fill="url(#ball)"/>
+  <g fill="#0b0d26"><circle cx="93" cy="252" r="3.2"/><circle cx="103" cy="249" r="3.2"/><circle cx="99" cy="260" r="3.6"/></g>
+  <text x="100" y="42" text-anchor="middle" fill="#fbf4e6" font-family="Helvetica Neue, Arial, sans-serif" font-weight="700" font-size="15" letter-spacing="6">THE BIG</text>
+  <text x="100" y="82" text-anchor="middle" fill="#f6c177" font-family="Impact, Haettenschweiler, 'Arial Narrow Bold', 'Arial Black', sans-serif" font-weight="900" font-size="44" textLength="176" lengthAdjust="spacingAndGlyphs">LEBOWSKI</text>
+  <text x="100" y="101" text-anchor="middle" fill="#fbf4e6" opacity=".7" font-family="Helvetica Neue, Arial, sans-serif" font-size="9" letter-spacing="4">1998</text>
+</svg>

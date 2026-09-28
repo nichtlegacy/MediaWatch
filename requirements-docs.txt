@@ -1,0 +1,3 @@
+# Documentation site only. Not needed to run or develop the bot.
+mkdocs>=1.6,<2.0
+mkdocs-material>=9.5,<10.0

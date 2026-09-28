@@ -1,298 +1,333 @@
-# PlexWatch - Your Plex Dashboard in Discord
+<div align="center">
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
-[![Version](https://img.shields.io/github/release/nichtlegacy/PlexWatch.svg?style=flat-square)](https://github.com/nichtlegacy/PlexWatch/releases/latest)
-![Python](https://img.shields.io/badge/python-3.8+-yellow.svg)
-![Discord.py](https://img.shields.io/badge/discord.py-2.0+-blueviolet.svg)
-![Plex](https://img.shields.io/badge/plex-compatible-orange.svg)
+<img src=".github/images/brand/logo.svg" width="90" height="90" alt="MediaWatch logo">
 
-PlexWatch is a Discord bot that brings your Plex media server to life with a real-time dashboard. Monitor active streams, track SABnzbd downloads, and check server uptime—all directly in your Discord server. Designed for Plex enthusiasts, PlexWatch delivers a sleek, embed-based interface to keep you informed about your media ecosystem.
+# MediaWatch
 
+**A Discord-first monitoring bot for self-hosted media servers.**
 
-## Features
+One live dashboard inside Discord for Plex or Jellyfin: active streams, library totals,
+server state, with optional SABnzbd and Uptime Kuma data.
 
-- **Plex Monitoring**: Displays active streams with details like title, user, progress, quality, and player info (up to 8 streams).
-- **SABnzbd Integration**: Tracks ongoing downloads with progress, speed, and size.
-- **Uptime Tracking**: Shows server uptime over 24h, 7d, and 30d with percentage and duration.
-- **Customizable Dashboard**: Updates every minute with a clean Discord embed, fully configurable via JSON.
-- **Bot Presence**: Reflects Plex status and stream count in the bot's Discord status.
-- **Logging**: Detailed logs for debugging and tracking bot activity.
+<a href="https://github.com/nichtlegacy/MediaWatch/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/nichtlegacy/MediaWatch?label=release&logo=github"></a>
+<a href="https://github.com/nichtlegacy/MediaWatch/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/nichtlegacy/MediaWatch/ci.yml?branch=main&label=CI&logo=githubactions&logoColor=white"></a>
+<img alt="Python 3.12" src="https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white">
+<img alt="discord.py" src="https://img.shields.io/badge/discord.py-2.x-5865F2?logo=discord&logoColor=white">
+<img alt="Plex" src="https://img.shields.io/badge/Plex-supported-EBAF00?logo=plex&logoColor=white">
+<img alt="Jellyfin" src="https://img.shields.io/badge/Jellyfin-supported-00A4DC?logo=jellyfin&logoColor=white">
 
+[Website](https://mediawatch.nichtlegacy.com/) • [Documentation](https://mediawatch.nichtlegacy.com/docs/) • [Quick Start](#quick-start) • [Platform Scope](#platform-scope) • [Roadmap](#roadmap)
+
+<img src=".github/images/hero.png" width="460" alt="MediaWatch dashboard in Discord">
+
+</div>
+
+## What It Does
+
+- Publishes a persistent Discord dashboard and updates it in place
+- Tracks active Plex or Jellyfin sessions in near real time
+- Shows library totals and server state in the same embed
+- Adds optional download and uptime sections via SABnzbd and Uptime Kuma
+- Offers interactive stream details and stream termination
+- Keeps runtime state in local files instead of Postgres or Redis
+
+This is not a web app and not a multi-user control panel. It is an operational bot for
+people who already live in Discord and want their media server status there.
+
+## Platform Scope
+
+MediaWatch loads exactly **one** platform at runtime, selected by `media_server.type`.
+
+| Capability | Plex | Jellyfin |
+| --- | :---: | :---: |
+| Live dashboard and library totals | ✅ | ✅ |
+| Stream details | With Tautulli | ✅ |
+| Kill Stream | ✅ | ✅ |
+| SABnzbd and Uptime Kuma | ✅ | ✅ |
+| User and global statistics | With Tautulli | ❌ |
+| Open in the media server | With Tautulli | ❌ |
+
+Plex has the richer surface because MediaWatch can layer Tautulli on top. Jellyfin support
+is intentionally narrower but uses the same dashboard model and runtime architecture.
 
 ## Screenshots
 
-Here’s how PlexWatch looks in action:
+<table>
+  <tr>
+    <td width="50%">
+      <strong>Dashboard</strong><br>
+      <img src=".github/images/dashboard.png" alt="Dashboard">
+    </td>
+    <td width="50%">
+      <strong>Offline State</strong><br>
+      <img src=".github/images/offline.png" alt="Offline State">
+    </td>
+  </tr>
+</table>
 
-- **Dashboard Example**:  
-  ![PlexWatch Dashboard](https://i.imgur.com/vAVrjvh.png)
+<table>
+  <tr>
+    <td width="50%">
+      <strong>Stream Details</strong><br>
+      <img src=".github/images/screenshots/stream-details.png" alt="Stream Details">
+    </td>
+    <td width="50%">
+      <strong>Kill Stream Modal</strong><br>
+      <img src=".github/images/screenshots/kill-stream-modal.png" alt="Kill Stream Modal">
+    </td>
+  </tr>
+</table>
 
-- **Server Offline Status**:  
-  ![PlexWatch Dashboard](https://i.imgur.com/QSiFpWP.png)
+<details>
+  <summary><strong>Tautulli User Stats</strong></summary>
+  <br>
+  <table>
+    <tr>
+      <td width="33%">
+        <strong>Page 1</strong><br>
+        <img src=".github/images/screenshots/user-stats-page-1.png" alt="User Stats Page 1">
+      </td>
+      <td width="33%">
+        <strong>Page 2</strong><br>
+        <img src=".github/images/screenshots/user-stats-page-2.png" alt="User Stats Page 2">
+      </td>
+      <td width="33%">
+        <strong>Page 3</strong><br>
+        <img src=".github/images/screenshots/user-stats-page-3.png" alt="User Stats Page 3">
+      </td>
+    </tr>
+  </table>
+</details>
 
+<details>
+  <summary><strong>Tautulli Global Stats</strong></summary>
+  <br>
+  <table>
+    <tr>
+      <td width="33%">
+        <strong>Page 1</strong><br>
+        <img src=".github/images/screenshots/global-stats-page-1.png" alt="Global Stats Page 1">
+      </td>
+      <td width="33%">
+        <strong>Page 2</strong><br>
+        <img src=".github/images/screenshots/global-stats-page-2.png" alt="Global Stats Page 2">
+      </td>
+      <td width="33%">
+        <strong>Page 3</strong><br>
+        <img src=".github/images/screenshots/global-stats-page-3.png" alt="Global Stats Page 3">
+      </td>
+    </tr>
+  </table>
+</details>
 
-## Project Structure
+<details>
+  <summary><strong>Jellyfin</strong></summary>
+  <br>
+  <table>
+    <tr>
+      <td width="50%">
+        <strong>Dashboard</strong><br>
+        <img src=".github/images/screenshots/jellyfin-dashboard.png" alt="Jellyfin Dashboard">
+      </td>
+      <td width="50%">
+        <strong>Stream Details</strong><br>
+        <img src=".github/images/screenshots/jellyfin-stream-details.png" alt="Jellyfin Stream Details">
+      </td>
+    </tr>
+  </table>
+</details>
 
-```
-📦 PlexWatch
-├─ /cogs                # Bot extensions (cogs) for modular functionality
-│  ├─ plex_core.py     # Core Plex monitoring and dashboard logic
-│  ├─ sabnzbd.py       # SABnzbd download tracking
-│  └─ uptime.py        # Server uptime monitoring
-├─ /data               # Configuration and state files
-│  ├─ config.json      # Bot settings (e.g., dashboard config, Plex sections)
-│  ├─ dashboard_message_id.json  # Stores the ID of the dashboard message
-│  └─ user_mapping.json  # Maps Plex usernames to display names
-├─ /logs               # Log files for debugging
-│  └─ plexwatch_debug.log  # Rotated debug logs (updated daily, 7-day backup)
-├─ .env                # Environment variables (private, not tracked)
-├─ .env.example        # Template for .env configuration
-├─ .gitignore          # Git ignore rules (e.g., logs, .env)
-├─ main.py             # Entry point for the bot
-├─ README.md           # This file
-└─ requirements.txt    # Python dependencies
-```
+## Quick Start
 
+Docker is the recommended way to run MediaWatch.
 
-## Setup
-
-### Prerequisites
-- Python 3.8+
-- A Plex Media Server with API access
-- SABnzbd (optional, for download tracking)
-- Uptime Kuma (optional, for uptime monitoring)
-- A Discord bot token
-
-### Installation local
-1. **Clone the Repository**:
-   ```bash
-   git clone https://github.com/nichtlegacy/PlexWatch.git
-   cd PlexWatch
-   ```
-
-2. **Install Dependencies**:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-3. **Configure Environment Variables**:
-   - Copy `.env.example` to `.env`:
-     ```bash
-     cp .env.example .env
-     ```
-   - Edit `.env` with your details (see below).
-
-4. **Run the Bot**:
-   ```bash
-   python main.py
-   ```
-   
-### Installation docker
-1. **Install the container and edit the required environment variables:**
-	- See the full list of available envs further below. 
-	- Make sure to mount the volume for persistent config changes.
-```
+```yaml
 services:
-  plexwatch:
-    image: ghcr.io/nichtlegacy/plexwatch:latest
-    container_name: plexwatch
-    environment:
-      - RUNNING_IN_DOCKER=true
-      - DISCORD_TOKEN=your_discord_bot_token
-      - DISCORD_AUTHORIZED_USERS=123456789012345678,987654321098765432
-      - PLEX_URL=https://your-plex-server:32400
-      - PLEX_TOKEN=your_plex_token
-      - CHANNEL_ID=your_discord_channel_id
-      
-      # Optional
-      # - SABNZBD_URL=http://192.168.1.1:8282
-      # - SABNZBD_API_KEY=your_sabnzbd_api_key
-
-      # Optional
-      # - UPTIME_URL=http://192.168.1.1:3001
-      # - UPTIME_USERNAME=your_kuma_username
-      # - UPTIME_PASSWORD=your_kuma_password
-      # - UPTIME_MONITOR_ID=your_monitor_id
-
-    volumes:
-      - ./plexwatch:/app/data
+  mediawatch:
+    image: ghcr.io/nichtlegacy/mediawatch:latest
+    container_name: mediawatch
     restart: unless-stopped
-```   
-
-2. **Start the container to run the bot**
-
-### Environment Variables (`.env`)
-The `.env` file stores sensitive configuration. Use the following format:
-
-```
-DISCORD_TOKEN=your_discord_bot_token
-DISCORD_AUTHORIZED_USERS=123456789012345678,987654321098765432  # Comma-separated user IDs
-PLEX_URL=https://your-plex-server:32400
-PLEX_TOKEN=your_plex_token
-CHANNEL_ID=your_discord_channel_id
-SABNZBD_URL=http://your-sabnzbd-server:8080
-SABNZBD_API_KEY=your_sabnzbd_api_key
-UPTIME_URL=https://your-uptime-kuma-server:3001
-UPTIME_USERNAME=your_uptime_kuma_username
-UPTIME_PASSWORD=your_uptime_kuma_password
-UPTIME_MONITOR_ID=your_monitor_id
+    env_file:
+      - .env
+    environment:
+      RUNNING_IN_DOCKER: "true"
+    volumes:
+      - ./data:/app/data
 ```
 
-- `DISCORD_TOKEN`: Your Discord bot token from the [Discord Developer Portal](https://discord.com/developers/applications).
-- `DISCORD_AUTHORIZED_USERS`: List of user IDs allowed to manage cogs (e.g., `!load`, `!unload`).
-- `PLEX_URL`: URL to your Plex server (include protocol and port).
-- `PLEX_TOKEN`: Your Plex API token (see [Plex Support](https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/)).
-- `CHANNEL_ID`: Discord channel ID where the dashboard embed appears.
-- `SABNZBD_URL` & `SABNZBD_API_KEY`: Optional, for SABnzbd integration (get API key from SABnzbd settings).
-- `UPTIME_URL`: Optional, URL to your Uptime Kuma server (e.g., https://uptime.example.com:3001)
-- `UPTIME_USERNAME`: Optional, Username for your Uptime Kuma instance
-- `UPTIME_PASSWORD`: Optional, Password for your Uptime Kuma instance
-- `UPTIME_MONITOR_ID`: Optional, The specific monitor ID from Uptime Kuma to track server uptime
-
-
-## Configuration
-
-PlexWatch is customized via `/data/config.json`. Below is the structure with example values based on your setup:
-
-```json
-{
-    "dashboard": {
-        "name": "Your Plex Dashboard",
-        "icon_url": "https://example.com/icon.png",
-        "footer_icon_url": "https://example.com/icon.png"
-    },
-    "plex_sections": {
-        "show_all": false,
-        "sections": {
-            "Movies": {
-                "display_name": "Movies",
-                "emoji": "🎥",
-                "show_episodes": false
-            },
-            "Shows": {
-                "display_name": "Shows",
-                "emoji": "📺",
-                "show_episodes": true
-            },
-            "Documentaries": {
-                "display_name": "Documentaries",
-                "emoji": "📚",
-                "show_episodes": false
-            }
-        }
-    },
-    "presence": {
-        "sections": [
-            {
-                "section_title": "Movies",
-                "display_name": "Movies",
-                "emoji": "🎥"
-            },
-            {
-                "section_title": "Shows",
-                "display_name": "Shows",
-                "emoji": "📺"
-            }
-        ],
-        "offline_text": "🔴 Server Offline!",
-        "stream_text": "{count} active Stream{s} 🟢"
-    },
-    "cache": {
-        "library_update_interval": 900
-    },
-    "sabnzbd": {
-        "keywords": ["AC3", "DL", "German", "1080p", "2160p", "4K", "GERMAN", "English"]
-    }
-}
+```bash
+curl -fsSL -o .env https://raw.githubusercontent.com/nichtlegacy/MediaWatch/main/.env.example
+mkdir -p data
+curl -fsSL -o data/config.yaml https://raw.githubusercontent.com/nichtlegacy/MediaWatch/main/data/config.yaml.example
+# fill in .env, then set media_server.type and your libraries in data/config.yaml
+docker compose up -d
+docker compose logs -f
 ```
 
-### Configuration Details
-- **`dashboard`**:
-  - `name`: Title of the Discord embed (e.g., "LEGACYVault Dashboard").
-  - `icon_url`: URL to the dashboard icon (displayed in author and thumbnail).
-  - `footer_icon_url`: URL to the footer icon.
+Keeping secrets in `.env` leaves `docker-compose.yml` safe to share. Setting them under
+`environment:` or in an Unraid template works just as well. See
+**[Docker Deployment](https://mediawatch.nichtlegacy.com/docs/deployment/docker/)**.
 
-- **`plex_sections`**:
-  - `show_all`: If `true`, all Plex library sections are shown; if `false`, only listed sections are included.
-  - `sections`: Defines displayed Plex libraries.
-    - Keys match your Plex library titles (e.g., "Movies", "Shows").
-    - `display_name`: Name shown in the dashboard.
-    - `emoji`: Emoji for visual flair (e.g., "🎥" for movies).
-    - `show_episodes`: If `true`, episode counts are shown (useful for series).
+You need a Discord bot token, a channel ID, your guild ID, at least one authorized user
+ID, and credentials for either Plex or Jellyfin. The
+**[Setup Guide](https://mediawatch.nichtlegacy.com/docs/getting-started/)** walks through obtaining each one.
 
-- **`presence`**:
-  - `sections`: Libraries shown in the bot’s Discord status when idle.
-    - `section_title`: Matches `plex_sections` keys.
-    - `display_name`: Name in the status.
-    - `emoji`: Emoji in the status.
-  - `offline_text`: Bot status when Plex is offline.
-  - `stream_text`: Bot status with active streams (e.g., "3 active Streams 🟢").
+## Documentation
 
-- **`cache`**:
-  - `library_update_interval`: Time (in seconds) between Plex library cache updates (default: 900 = 15 minutes).
+The full documentation lives at **[mediawatch.nichtlegacy.com/docs](https://mediawatch.nichtlegacy.com/docs/)**.
 
-- **`sabnzbd`**:
-  - `keywords`: List of keywords used to trim download names. The bot cuts off the name at the first occurrence of any keyword (e.g., "Movie.Name.German.1080p" becomes "Movie Name"), then limits it to 40 characters (truncating with "..." if longer). This ensures clean, readable names in the dashboard.
+| Page | What it covers |
+| --- | --- |
+| **[Setup Guide](https://mediawatch.nichtlegacy.com/docs/getting-started/)** | From a fresh Discord application to a running dashboard |
+| **[Docker Deployment](https://mediawatch.nichtlegacy.com/docs/deployment/docker/)** | Compose, volumes, `PUID`/`PGID`, logs, updates |
+| **[Configuration](https://mediawatch.nichtlegacy.com/docs/configuration/)** | Every option in `config.yaml` with its default |
+| **[Privacy and Visibility](https://mediawatch.nichtlegacy.com/docs/usage/privacy/)** | Who in the channel can see what, and how to restrict it |
+| **[Troubleshooting](https://mediawatch.nichtlegacy.com/docs/operations/troubleshooting/)** | The common failure modes and their exact messages |
+| **[Migration from 1.x](https://mediawatch.nichtlegacy.com/docs/operations/upgrading-from-1x/)** | Upgrading a PlexWatch install |
 
-## User Mapping
+## Running Locally
 
-The `/data/user_mapping.json` file allows you to personalize Plex usernames by mapping them to custom display names shown in the dashboard. This keeps the interface clean and user-friendly.
-
-**Example `user_mapping.json`**:
-```json
-{
-    "nichtlegacy": "LEGACY",
-    "plexfan99": "Fan",
-    "moviebuff": "Buff"
-}
+```bash
+git clone https://github.com/nichtlegacy/MediaWatch.git
+cd MediaWatch
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env
+cp data/config.yaml.example data/config.yaml
+python main.py
 ```
 
-- **Key**: The exact Plex username (case-sensitive).
-- **Value**: The custom name displayed in the dashboard.
+A local run reads `.env` through `python-dotenv` and writes rotating logs to
+`logs/mediawatch_debug.log`. Apart from a startup failure (missing credentials or an
+unreadable `config.yaml`), nothing is printed to the console, so check the log file.
 
-If a username is listed, its mapped name is used (e.g., "Alex" instead of "user123"); otherwise, the original Plex username is shown.
+## Slash Commands
 
-## Logging
-Logs are stored in `/logs/plexwatch_debug.log`:
-- **Format**: `timestamp - logger_name - level - message` (e.g., `2025-03-12 20:37:34,092 - plexwatch_bot - INFO - Bot is online`).
-- **Rotation**: Daily, with a 7-day backup (older logs are overwritten).
-- **Levels**: DEBUG, INFO, WARNING, ERROR – useful for troubleshooting.
+All commands are restricted to the IDs in `DISCORD_AUTHORIZED_USERS` and published into
+`DISCORD_GUILD_ID` on every start.
 
-Example log entries:
+| Command | Purpose |
+| --- | --- |
+| `/cogs` | List all cogs and their load state |
+| `/load`, `/unload`, `/reload` | Manage a single cog |
+| `/reload_config` | Re-read `config.yaml` without restarting |
+| `/mapping add·edit·remove·list` | Map media server usernames to display names |
+| `!sync [guild\|global\|copy\|clear\|clearglobal]` | Publish the command tree after local changes |
+
+`!sync` is the only reason the bot requests the Message Content intent.
+
+## Privacy
+
+By default **everyone who can read the dashboard channel** can open stream details, and on
+Plex with Tautulli also the per-user statistics behind them and the global statistics,
+including a server-wide top-users leaderboard. Three options close that down:
+
+```yaml
+stream_details:
+  restrict_to_authorized: true
+user_stats:
+  restrict_to_authorized: true
+global_stats:
+  restrict_to_authorized: true
 ```
-2025-03-12 20:37:34,509 - plexwatch_bot - INFO - Loaded cog: plex_core
-2025-03-12 20:37:35,050 - plexwatch_bot - ERROR - Failed to connect to Plex server: Timeout
+
+Client IP addresses are stricter still: they need a config flag **and** membership in
+`DISCORD_AUTHORIZED_USERS`. Details in **[Privacy and Visibility](https://mediawatch.nichtlegacy.com/docs/usage/privacy/)**.
+
+## Architecture
+
+```text
+main.py                     boots the bot, syncs commands, loads cogs
+cogs/media_core/
+  shared/                   models, config, formatters, dashboard embed
+  plex/                     Plex runtime, services, views, Tautulli
+  jellyfin/                 Jellyfin runtime, client, views, embeds
+cogs/sabnzbd.py             optional modules outside the platform core
+cogs/uptime.py
+cogs/user_mapping.py
+data/                       config and bot-managed state
 ```
 
-## Commands
-PlexWatch uses Discord slash commands (synced on startup):
-- `/load <cog>`: Load a cog (e.g., `plex_core`).
-- `/unload <cog>`: Unload a cog.
-- `/reload <cog>`: Reload a cog.
-- `/cogs`: List all available cogs with their status.
+Exactly one of `plex` or `jellyfin` is loaded at runtime. Both go through the same
+`MediaService` protocol and the same dashboard embed, so the Discord-facing behaviour is
+identical where the platforms allow it. Runtime state is file-backed.
 
-*Note*: Only users listed in `DISCORD_AUTHORIZED_USERS` can use these commands.
+## Roadmap
 
-## Acknowledgements
-- [Plex](https://www.plex.tv) - For providing an excellent media server platform that powers the core monitoring capabilities of PlexWatch.
-- [PlexAPI](https://github.com/pkkid/python-plexapi) - A Python library for interacting with Plex servers, essential for stream and library tracking.
-- [discord.py](https://github.com/Rapptz/discord.py) - The backbone of the Discord bot functionality, making embeds and real-time updates possible.
-- [SABnzbd](https://sabnzbd.org) - A powerful download manager integrated to monitor ongoing downloads within the dashboard.
-- [Uptime Kuma](https://uptime.kuma.pet) - A lightweight tool for monitoring server uptime, integrated for availability tracking over 24h, 7d, and 30d.
+Planned, not promised. This is a spare-time project and the order can change. Nothing
+here is required for what 2.0 already does.
 
-## Contributing
+<details>
+  <summary><strong>What is planned</strong></summary>
+<br>
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+**Self-hosted uptime tracking**
 
-## License
+The bot already polls the media server every minute and already decides online from
+offline. Recording that history removes the need for Uptime Kuma, which is currently the
+only way to get uptime percentages into the dashboard.
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+Uptime Kuma stays supported and remains the more accurate source, for one reason worth
+stating plainly: it runs independently of the bot, so it also sees outages that happen
+while the bot itself is down. Self-tracking cannot. The plan therefore reports those
+periods as *unknown* rather than counting them as uptime. A slightly smaller number that
+can be trusted beats a flattering one that cannot.
 
-## Star History
+**Statistics for Jellyfin**
 
-<a href="https://www.star-history.com/#nichtlegacy/PlexWatch&Date">
- <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=nichtlegacy/PlexWatch&type=Date&theme=dark" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=nichtlegacy/PlexWatch&type=Date" />
-   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=nichtlegacy/PlexWatch&type=Date" />
- </picture>
-</a>
+Jellyfin currently has no user or global statistics, because those are built on Tautulli
+and Tautulli is Plex-only. Jellyfin's official Playback Reporting plugin exposes
+comparable data, which would let both platforms offer the same pages.
+
+**Notifications**
+
+The dashboard overwrites its own state, so nothing tells you that something *happened*
+while you were not looking. The bot already sees most of these every minute and simply
+discards them; the rest would need new polling:
+
+- Server went offline, and came back after how long
+- Rejected credentials, disk running out of space
+- Stream started, finished, or fell back to transcoding
+- New media added, failed library scan (not polled yet)
+
+Most of it would default to off. A notification you learn to ignore is worse than none.
+
+Have a different idea, or need one of these sooner? Open an issue. Knowing that someone
+actually wants a feature is what moves it up the list.
+
+</details>
+
+## Upgrading from PlexWatch 1.x
+
+MediaWatch grew out of `PlexWatch`. Three things are **not** automatic: the image path
+changed to `ghcr.io/nichtlegacy/mediawatch`, `DISCORD_GUILD_ID` is now required, and you
+should check the result of the automatic `config.json` conversion. The full path is in the
+**[migration guide](https://mediawatch.nichtlegacy.com/docs/operations/upgrading-from-1x/)**.
+
+## Development
+
+```bash
+pip install -r requirements-dev.txt
+pytest
+ruff check . && ruff format --check .
+```
+
+`ruff` is the only lint and format tool; its config lives in `pyproject.toml`. See
+[CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request, and
+[SECURITY.md](SECURITY.md) for reporting a vulnerability.
+
+## How this project is built
+
+MediaWatch is written with extensive help from AI coding assistants. PlexWatch 1.x started
+the same way: it worked better than I expected, but its internals were not built to last,
+which is what the 2.0 rewrite addresses.
+
+I have run MediaWatch in production on my own server since early 2026, and the features
+and fixes since then come from using it every day. CI runs the full test suite on every
+push and pull request.
+
+---
+
+<p align="center">
+  <strong><a href="LICENSE">MIT License</a></strong> © 2025 <a href="https://github.com/nichtlegacy">nichtlegacy</a>
+</p>

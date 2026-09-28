@@ -1,0 +1,505 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>MediaWatch: a live Plex and Jellyfin dashboard in Discord</title>
+<meta name="description" content="A self-hosted Discord bot that keeps one live dashboard for your Plex or Jellyfin server: active streams, library totals, server state, SABnzbd downloads and Uptime Kuma history.">
+<link rel="canonical" href="https://mediawatch.nichtlegacy.com/">
+<meta name="author" content="nichtlegacy">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0a0a0c">
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="MediaWatch">
+<meta property="og:locale" content="en_US">
+<meta property="og:url" content="https://mediawatch.nichtlegacy.com/">
+<meta property="og:title" content="MediaWatch: a live Plex and Jellyfin dashboard in Discord">
+<meta property="og:description" content="One Discord message, edited every minute: who is watching what, library totals and server state for Plex or Jellyfin. Self-hosted, open source, runs in Docker.">
+<meta property="og:image" content="https://mediawatch.nichtlegacy.com/og.png">
+<meta property="og:image:secure_url" content="https://mediawatch.nichtlegacy.com/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="The MediaWatch dashboard in a Discord channel beside the words “Your media server, live in Discord.”">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="MediaWatch: a live Plex and Jellyfin dashboard in Discord">
+<meta name="twitter:description" content="One Discord message, edited every minute: who is watching what, library totals and server state for Plex or Jellyfin.">
+<meta name="twitter:image" content="https://mediawatch.nichtlegacy.com/og.png">
+<meta name="twitter:image:alt" content="The MediaWatch dashboard in a Discord channel beside the words “Your media server, live in Discord.”">
+
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="icon-32.png" type="image/png" sizes="32x32">
+<link rel="icon" href="favicon.ico" sizes="48x48">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preload" as="font" href="fonts/Geist-Variable.woff2" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="app.css">
+<script src="app.js" defer></script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://mediawatch.nichtlegacy.com/#website",
+      "url": "https://mediawatch.nichtlegacy.com/",
+      "name": "MediaWatch",
+      "description": "Self-hosted Discord bot with a live dashboard for Plex or Jellyfin.",
+      "inLanguage": "en",
+      "publisher": { "@id": "https://mediawatch.nichtlegacy.com/#author" },
+      "about": { "@id": "https://mediawatch.nichtlegacy.com/#app" }
+    },
+    {
+      "@type": "WebPage",
+      "@id": "https://mediawatch.nichtlegacy.com/#webpage",
+      "url": "https://mediawatch.nichtlegacy.com/",
+      "name": "MediaWatch: a live Plex and Jellyfin dashboard in Discord",
+      "isPartOf": { "@id": "https://mediawatch.nichtlegacy.com/#website" },
+      "about": { "@id": "https://mediawatch.nichtlegacy.com/#app" },
+      "primaryImageOfPage": { "@id": "https://mediawatch.nichtlegacy.com/#primaryimage" },
+      "dateModified": "__BUILD_DATE__",
+      "inLanguage": "en"
+    },
+    {
+      "@type": "ImageObject",
+      "@id": "https://mediawatch.nichtlegacy.com/#primaryimage",
+      "url": "https://mediawatch.nichtlegacy.com/og.png",
+      "contentUrl": "https://mediawatch.nichtlegacy.com/og.png",
+      "width": 1200,
+      "height": 630,
+      "caption": "The MediaWatch dashboard in a Discord channel beside the words “Your media server, live in Discord.”"
+    },
+    {
+      "@type": "Person",
+      "@id": "https://mediawatch.nichtlegacy.com/#author",
+      "name": "nichtlegacy",
+      "url": "https://github.com/nichtlegacy",
+      "sameAs": ["https://github.com/nichtlegacy"]
+    },
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://mediawatch.nichtlegacy.com/#app",
+      "name": "MediaWatch",
+      "alternateName": ["PlexWatch", "MediaWatch Discord bot"],
+      "url": "https://mediawatch.nichtlegacy.com/",
+      "description": "A self-hosted Discord bot that keeps one live dashboard message for a Plex or Jellyfin server: active streams, library totals and server state, with optional SABnzbd downloads and Uptime Kuma history.",
+      "applicationCategory": "MultimediaApplication",
+      "applicationSubCategory": "Discord bot for media server monitoring",
+      "operatingSystem": "Linux, macOS, Windows (Docker or Python 3.12)",
+      "softwareRequirements": "Docker or Python 3.12, a Discord bot token, a Plex or Jellyfin server",
+      "softwareVersion": "__VERSION__",
+      "inLanguage": "en",
+      "image": { "@id": "https://mediawatch.nichtlegacy.com/#primaryimage" },
+      "screenshot": "https://mediawatch.nichtlegacy.com/docs/assets/dashboard.png",
+      "featureList": [
+        "One live Discord dashboard, edited in place every minute",
+        "Active streams with progress, quality, transcode state and player",
+        "Library totals with custom names and emoji",
+        "Stream details and Kill Stream for authorized users",
+        "User and global statistics from Tautulli on Plex",
+        "Optional SABnzbd download queue",
+        "Optional Uptime Kuma history while the server is offline",
+        "Plex or Jellyfin, one per deployment"
+      ],
+      "downloadUrl": "https://github.com/nichtlegacy/MediaWatch/releases",
+      "installUrl": "https://mediawatch.nichtlegacy.com/docs/getting-started/",
+      "releaseNotes": "https://github.com/nichtlegacy/MediaWatch/releases",
+      "codeRepository": "https://github.com/nichtlegacy/MediaWatch",
+      "discussionUrl": "https://github.com/nichtlegacy/MediaWatch/issues",
+      "license": "https://opensource.org/licenses/MIT",
+      "isAccessibleForFree": true,
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD",
+        "availability": "https://schema.org/InStock",
+        "url": "https://github.com/nichtlegacy/MediaWatch/releases"
+      },
+      "author": { "@id": "https://mediawatch.nichtlegacy.com/#author" },
+      "maintainer": { "@id": "https://mediawatch.nichtlegacy.com/#author" },
+      "mainEntityOfPage": { "@id": "https://mediawatch.nichtlegacy.com/#webpage" }
+    }
+  ]
+}
+</script>
+</head>
+<body>
+
+<a class="skip" href="#main">Skip to content</a>
+
+<svg class="sprite" aria-hidden="true" focusable="false">
+  <symbol id="i-github" viewBox="0 0 16 16">
+    <path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/>
+  </symbol>
+  <symbol id="i-book" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 5.5A2 2 0 0 1 6.5 3.5H19.5v14H6.5a2 2 0 0 0-2 2Z"/><path d="M4.5 19.5a2 2 0 0 0 2 2h13v-4"/></g>
+  </symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="8.5" y="8.5" width="11" height="11" rx="2.2"/><path d="M15.5 8.5V6.7a2.2 2.2 0 0 0-2.2-2.2H6.7a2.2 2.2 0 0 0-2.2 2.2v6.6a2.2 2.2 0 0 0 2.2 2.2h1.8"/></g>
+  </symbol>
+  <symbol id="i-check" viewBox="0 0 24 24">
+    <path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="m5 12.5 4.5 4.5L19 7.5"/>
+  </symbol>
+  <symbol id="i-chevron" viewBox="0 0 24 24">
+    <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="m6.5 9.5 5.5 5.5 5.5-5.5"/>
+  </symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24">
+    <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M5 12h13m-5-5 5 5-5 5"/>
+  </symbol>
+  <symbol id="i-grid" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="3.5" y="3.5" width="7" height="7" rx="1.8"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.8"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.8"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.8"/></g>
+  </symbol>
+  <symbol id="i-play" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="15" rx="3"/><path d="m10 9 5 3-5 3Z"/></g>
+  </symbol>
+  <symbol id="i-split" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 3.5v17"/><rect x="3.5" y="6" width="17" height="12" rx="3"/></g>
+  </symbol>
+  <symbol id="i-box" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M3.5 7.5 12 3l8.5 4.5v9L12 21l-8.5-4.5Z"/><path d="M3.5 7.5 12 12l8.5-4.5M12 12v9"/></g>
+  </symbol>
+  <!-- Discord glyphs for the mock client. -->
+  <symbol id="d-hash" viewBox="0 0 24 24">
+    <path fill="currentColor" d="M10.99 3.16A1 1 0 1 0 9 2.84L8.15 8H4a1 1 0 0 0 0 2h3.82l-.67 4H3a1 1 0 1 0 0 2h3.82l-.8 4.84a1 1 0 0 0 1.97.32L8.85 16h4.97l-.8 4.84a1 1 0 0 0 1.97.32l.86-5.16H20a1 1 0 1 0 0-2h-3.82l.67-4H21a1 1 0 1 0 0-2h-3.82l.8-4.84a1 1 0 1 0-1.97-.32L15.15 8h-4.97l.8-4.84ZM14.15 14l.67-4H9.85l-.67 4h4.97Z"/>
+  </symbol>
+  <symbol id="d-eye" viewBox="0 0 24 24">
+    <path fill="currentColor" d="M15.56 11.77c.2-.1.44.02.44.23a4 4 0 1 1-4-4c.21 0 .33.25.23.44a2.5 2.5 0 0 0 3.32 3.32Z"/><path fill="currentColor" fill-rule="evenodd" d="M22.89 11.7c.07.2.07.4 0 .6C22.27 13.9 19.1 21 12 21c-7.11 0-10.27-7.11-10.89-8.7a.83.83 0 0 1 0-.6C1.73 10.1 4.9 3 12 3c7.11 0 10.27 7.11 10.89 8.7Zm-4.5-3.62A15.11 15.11 0 0 1 20.85 12c-.38.88-1.18 2.47-2.46 3.92C16.87 17.62 14.8 19 12 19c-2.8 0-4.87-1.38-6.39-3.08A15.11 15.11 0 0 1 3.15 12c.38-.88 1.18-2.47 2.46-3.92C7.13 6.38 9.2 5 12 5c2.8 0 4.87 1.38 6.39 3.08Z" clip-rule="evenodd"/>
+  </symbol>
+  <symbol id="d-link" viewBox="0 0 24 24">
+    <path fill="currentColor" d="M15 2a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v6a1 1 0 1 1-2 0V4.41l-4.3 4.3a1 1 0 1 1-1.4-1.42L19.58 3H16a1 1 0 0 1-1-1Z"/><path fill="currentColor" d="M5 2a3 3 0 0 0-3 3v14a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3v-6a1 1 0 1 0-2 0v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h6a1 1 0 1 0 0-2H5Z"/>
+  </symbol>
+  <symbol id="d-image" viewBox="0 0 24 24">
+    <path fill="currentColor" fill-rule="evenodd" d="M2 5a3 3 0 0 1 3-3h14a3 3 0 0 1 3 3v14a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3V5Zm13.35 8.13 3.5 4.67c.37.5.02 1.2-.6 1.2H5.81a.75.75 0 0 1-.59-1.22l1.86-2.32a1.5 1.5 0 0 1 2.34 0l.5.64 2.23-2.97a2 2 0 0 1 3.2 0ZM10.2 5.98c.23-.91-.88-1.55-1.55-.9a.93.93 0 0 1-1.3 0c-.67-.65-1.78-.01-1.55.9a.93.93 0 0 1-.65 1.12c-.9.26-.9 1.54 0 1.8.48.14.77.63.65 1.12-.23.91.88 1.55 1.55.9a.93.93 0 0 1 1.3 0c.67.65 1.78.01 1.55-.9a.93.93 0 0 1 .65-1.12c.9-.26.9-1.54 0-1.8a.93.93 0 0 1-.65-1.12Z" clip-rule="evenodd"/>
+  </symbol>
+  <symbol id="d-close" viewBox="0 0 24 24">
+    <path fill="currentColor" d="M17.3 18.7a1 1 0 0 0 1.4-1.4L13.42 12l5.3-5.3a1 1 0 0 0-1.42-1.4L12 10.58l-5.3-5.3a1 1 0 0 0-1.4 1.42L10.58 12l-5.3 5.3a1 1 0 1 0 1.42 1.4L12 13.42l5.3 5.3Z"/>
+  </symbol>
+  <symbol id="d-check" viewBox="0 0 24 24">
+    <path fill="currentColor" d="M21.7 5.3a1 1 0 0 1 0 1.4l-12 12a1 1 0 0 1-1.4 0l-6-6a1 1 0 1 1 1.4-1.4L9 16.58l11.3-11.3a1 1 0 0 1 1.4 0Z"/>
+  </symbol>
+</svg>
+
+<header class="top" id="top-bar">
+  <a class="mark" href="#top" aria-label="MediaWatch, back to top">
+    <img class="mark-icon" src="favicon.svg" width="30" height="30" alt="">
+    <span>MediaWatch</span>
+    <span class="mark-version" id="site-version">v__VERSION__</span>
+  </a>
+  <nav class="top-nav" aria-label="Sections">
+    <span class="nav-glow" aria-hidden="true"></span>
+    <a href="#dashboard"><svg width="15" height="15" aria-hidden="true"><use href="#i-grid"/></svg>Dashboard</a>
+    <a href="#streams"><svg width="15" height="15" aria-hidden="true"><use href="#i-play"/></svg>Streams</a>
+    <a href="#platforms"><svg width="15" height="15" aria-hidden="true"><use href="#i-split"/></svg>Platforms</a>
+    <a href="#setup"><svg width="15" height="15" aria-hidden="true"><use href="#i-box"/></svg>Setup</a>
+    <a href="#docs"><svg width="15" height="15" aria-hidden="true"><use href="#i-book"/></svg>Docs</a>
+  </nav>
+  <div class="top-actions">
+    <a class="icon-btn" href="https://github.com/nichtlegacy/MediaWatch" rel="noopener" aria-label="Source code on GitHub">
+      <svg width="17" height="17" aria-hidden="true"><use href="#i-github"/></svg>
+    </a>
+    <a class="pill solid" href="docs/">
+      <svg width="15" height="15" aria-hidden="true"><use href="#i-book"/></svg>
+      Documentation
+    </a>
+  </div>
+</header>
+
+<main id="main">
+
+  <!-- The hero is a Discord channel instead of a Mac: just #dashboard and its
+       messages. Everything in
+       the message pane is drawn by app.js from mock data in the formats the
+       bot's own formatters produce. -->
+  <section class="hero" id="top">
+    <div class="hero-copy">
+      <h1>Your media server,<br>live in Discord.</h1>
+      <p class="lede">One message in one channel, edited every minute: who is watching what, how far along, in which quality. Library totals, server state and your download queue beside it.</p>
+      <div class="actions">
+        <a class="pill solid lg" href="docs/getting-started/">
+          Get started
+          <svg width="16" height="16" aria-hidden="true"><use href="#i-arrow"/></svg>
+        </a>
+        <a class="pill ghost lg" href="https://github.com/nichtlegacy/MediaWatch" rel="noopener">
+          <svg width="16" height="16" aria-hidden="true"><use href="#i-github"/></svg>
+          Source
+        </a>
+      </div>
+
+      <div class="demo-controls" id="demo-controls" hidden>
+        <p class="demo-label">Try the demo: press a stream button in the channel.</p>
+        <div class="demo-row">
+          <span class="demo-key" id="demo-key-server">Server</span>
+          <div class="seg" role="radiogroup" aria-labelledby="demo-key-server">
+            <span class="seg-thumb" aria-hidden="true"></span>
+            <button type="button" role="radio" aria-checked="true" data-platform="plex" data-tone="plex"><i class="dot"></i>Plex</button>
+            <button type="button" role="radio" aria-checked="false" data-platform="jellyfin" data-tone="jellyfin"><i class="dot"></i>Jellyfin</button>
+          </div>
+        </div>
+        <div class="demo-row">
+          <span class="demo-key" id="demo-key-state">State</span>
+          <div class="seg" role="radiogroup" aria-labelledby="demo-key-state">
+            <span class="seg-thumb" aria-hidden="true"></span>
+            <button type="button" role="radio" aria-checked="true" data-server="online" data-tone="online"><i class="dot"></i>Online</button>
+            <button type="button" role="radio" aria-checked="false" data-server="offline" data-tone="offline"><i class="dot"></i>Offline</button>
+            <button type="button" role="radio" aria-checked="false" data-server="auth" data-tone="auth"><i class="dot"></i>Bad token</button>
+          </div>
+        </div>
+        <div class="demo-row">
+          <span class="demo-key">Queue</span>
+          <button class="switch" type="button" data-toggle="downloads" aria-pressed="false"><span class="switch-track" aria-hidden="true"></span>Downloading</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero-demo">
+      <div class="dc" id="discord" aria-label="Interactive mock of the MediaWatch dashboard in a Discord channel">
+        <section class="dc-main">
+          <header class="dc-head">
+            <svg width="24" height="24" aria-hidden="true"><use href="#d-hash"/></svg>
+            <b>dashboard</b>
+          </header>
+          <div class="dc-body">
+            <div class="dc-scroll" id="dc-scroll">
+              <ol class="dc-messages" id="dc-messages" aria-live="polite">
+                <li class="dc-noscript">The interactive demo needs JavaScript.</li>
+              </ol>
+            </div>
+            <aside class="dc-members" id="dc-members" aria-label="Members"></aside>
+          </div>
+          <div class="dc-modal-layer" id="dc-modal" hidden></div>
+        </section>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="dashboard">
+    <div class="wrap">
+      <header class="section-head stack-head reveal">
+        <h2>One message, edited in place</h2>
+        <p>MediaWatch posts the dashboard once and keeps editing that same message, so the channel never fills up. A restart picks the message up again instead of posting a second one.</p>
+      </header>
+      <div class="features">
+        <article class="feature reveal">
+          <h3>Libraries</h3>
+          <p>One tile per library with your own names and emoji, plus an episode count for TV sections. Unconfigured libraries follow in the order the server reports them.</p>
+          <div class="feature-art art-teal"><div class="snip" data-snip="libraries"></div></div>
+        </article>
+        <article class="feature reveal">
+          <h3>Streams</h3>
+          <p>Title, user, a ten-cell progress bar, direct play or transcode, quality, bitrate and player. Paused streams show a pause sign instead of the bar.</p>
+          <div class="feature-art art-amber"><div class="snip" data-snip="streams"></div></div>
+        </article>
+        <article class="feature reveal">
+          <h3>Downloads</h3>
+          <p>The SABnzbd queue while it runs: progress, time left, speed and what is still to fetch, then the queue total and your disk space. With an empty queue the block is gone.</p>
+          <div class="feature-art art-green"><div class="snip" data-snip="downloads"></div></div>
+        </article>
+        <article class="feature reveal">
+          <h3>Offline and uptime</h3>
+          <p>When the server stops answering for five minutes, the dashboard turns red and says since when, with the Uptime Kuma history for the last day, week and month.</p>
+          <div class="feature-art art-blue"><div class="snip" data-snip="offline"></div></div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="streams">
+    <div class="wrap duo">
+      <div class="duo-media reveal">
+        <div class="snip snip-wide" data-snip="details"></div>
+      </div>
+      <div class="duo-copy reveal">
+        <h2>Every stream,<br>one click deeper.</h2>
+        <p class="lede">A button per stream opens the details as a reply only the person who clicked can see: player, connection, resolution and HDR, file, subtitles, and the full transcode chain when the server converts.</p>
+        <ul class="ticks">
+          <li><b>Kill Stream</b> ends a session with a reason, for the Discord users you authorize.</li>
+          <li><b>User and global statistics</b> from Tautulli on Plex: watch time, peak hours, top content, a top-10 leaderboard.</li>
+          <li><b>Plex</b> opens the playing item in Plex Web, or any Plex Web you point it at.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="platforms">
+    <div class="wrap duo flip">
+      <div class="duo-copy align-end reveal">
+        <h2>Plex or Jellyfin.<br>One of them.</h2>
+        <p class="lede">Each deployment watches exactly one server, chosen by <code>media_server.type</code>. Both render the same dashboard; Plex goes further when Tautulli sits beside it.</p>
+        <a class="pill ghost" href="docs/reference/architecture/">
+          <svg width="15" height="15" aria-hidden="true"><use href="#i-book"/></svg>
+          How it is built
+        </a>
+      </div>
+      <div class="duo-media reveal">
+        <table class="scope">
+          <thead>
+            <tr><th scope="col">Capability</th><th scope="col"><i class="dot plex"></i>Plex</th><th scope="col"><i class="dot jellyfin"></i>Jellyfin</th></tr>
+          </thead>
+          <tbody>
+            <tr><th scope="row">Live dashboard and library totals</th><td class="yes">Yes</td><td class="yes">Yes</td></tr>
+            <tr><th scope="row">Stream details</th><td>With Tautulli</td><td class="yes">Yes</td></tr>
+            <tr><th scope="row">Kill Stream</th><td class="yes">Yes</td><td class="yes">Yes</td></tr>
+            <tr><th scope="row">SABnzbd and Uptime Kuma</th><td class="yes">Yes</td><td class="yes">Yes</td></tr>
+            <tr><th scope="row">User and global statistics</th><td>With Tautulli</td><td class="no">No</td></tr>
+            <tr><th scope="row">Open in the media server</th><td>With Tautulli</td><td class="no">No</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="setup">
+    <div class="wrap">
+      <header class="section-head stack-head reveal">
+        <h2>Running in ten minutes</h2>
+        <p>Docker is the recommended way. You need a Discord bot token, a channel, your server ID, at least one authorized user, and a Plex token or a Jellyfin API key.</p>
+      </header>
+      <div class="steps">
+        <article class="step reveal">
+          <span class="step-n">1</span>
+          <h3>Create the bot</h3>
+          <p>A Discord application with one privileged intent and five permissions, invited to your server.</p>
+          <a href="docs/getting-started/discord-bot/">Discord bot guide</a>
+        </article>
+        <article class="step reveal">
+          <span class="step-n">2</span>
+          <h3>Fill in two files</h3>
+          <p>Secrets go into <code>.env</code>, behaviour into <code>data/config.yaml</code>. Set <code>media_server.type</code> and you have a dashboard.</p>
+          <a href="docs/getting-started/first-run/">First run</a>
+        </article>
+        <article class="step reveal">
+          <span class="step-n">3</span>
+          <h3>Start the container</h3>
+          <p>The image is on GHCR. State lives in <code>./data</code>: no database, no Redis.</p>
+          <a href="docs/deployment/docker/">Docker deployment</a>
+        </article>
+      </div>
+      <div class="code reveal">
+        <div class="code-bar"><span>docker-compose.yml</span>
+          <button class="copy" type="button" data-copy-from="compose" aria-label="Copy docker-compose.yml">
+            <svg width="15" height="15" aria-hidden="true"><use href="#i-copy"/></svg>
+          </button>
+        </div>
+<pre id="compose"><span class="k">services:</span>
+  <span class="k">mediawatch:</span>
+    <span class="k">image:</span> ghcr.io/nichtlegacy/mediawatch:latest
+    <span class="k">container_name:</span> mediawatch
+    <span class="k">restart:</span> unless-stopped
+    <span class="k">env_file:</span>
+      - .env
+    <span class="k">environment:</span>
+      <span class="k">RUNNING_IN_DOCKER:</span> <span class="s">"true"</span>
+    <span class="k">volumes:</span>
+      - ./data:/app/data</pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- The wiki, folded: every page of the MkDocs site, grouped the way its
+       navigation is. Native <details>, so it works without JS. -->
+  <section class="section" id="docs">
+    <div class="wrap duo docs-duo">
+      <div class="duo-copy reveal">
+        <h2>Everything else<br>is in the docs.</h2>
+        <p class="lede">Every option with its default, every log message verbatim, and what to do when the dashboard does not look like this one.</p>
+        <a class="pill solid" href="docs/">
+          <svg width="15" height="15" aria-hidden="true"><use href="#i-book"/></svg>
+          Open the documentation
+        </a>
+      </div>
+      <div class="wiki reveal">
+        <details open>
+          <summary>Getting started<svg width="16" height="16" aria-hidden="true"><use href="#i-chevron"/></svg></summary>
+          <ul>
+            <li><a href="docs/getting-started/">Overview<small>What you need before you start</small></a></li>
+            <li><a href="docs/getting-started/discord-bot/">Discord bot<small>Token, intent, permissions, the three IDs</small></a></li>
+            <li><a href="docs/getting-started/media-server/">Media server<small>Plex token or Jellyfin API key, and the URL</small></a></li>
+            <li><a href="docs/getting-started/first-run/">First run<small><code>.env</code>, <code>config.yaml</code>, first start</small></a></li>
+          </ul>
+        </details>
+        <details>
+          <summary>Deployment<svg width="16" height="16" aria-hidden="true"><use href="#i-chevron"/></svg></summary>
+          <ul>
+            <li><a href="docs/deployment/docker/">Docker<small>Compose, volumes, <code>PUID</code>/<code>PGID</code>, logs</small></a></li>
+            <li><a href="docs/deployment/local/">Running locally<small>Virtualenv and systemd</small></a></li>
+            <li><a href="docs/deployment/updating/">Updating<small>Updates, what persists, rolling back</small></a></li>
+          </ul>
+        </details>
+        <details>
+          <summary>Configuration<svg width="16" height="16" aria-hidden="true"><use href="#i-chevron"/></svg></summary>
+          <ul>
+            <li><a href="docs/configuration/">Overview<small>Where the files live, applying changes</small></a></li>
+            <li><a href="docs/configuration/environment/">Environment variables<small>Required, per platform, optional</small></a></li>
+            <li><a href="docs/configuration/reference/">Option reference<small>Every option with its default</small></a></li>
+            <li><a href="docs/configuration/examples/">Examples<small>Ready-made blocks to copy</small></a></li>
+          </ul>
+        </details>
+        <details>
+          <summary>Usage<svg width="16" height="16" aria-hidden="true"><use href="#i-chevron"/></svg></summary>
+          <ul>
+            <li><a href="docs/usage/dashboard/">Dashboard<small>Online, offline, bad token, presence, buttons</small></a></li>
+            <li><a href="docs/usage/commands/">Commands<small><code>/mapping</code>, <code>/reload_config</code>, <code>!sync</code></small></a></li>
+            <li><a href="docs/usage/privacy/">Privacy and visibility<small>Who in the channel can open what</small></a></li>
+          </ul>
+        </details>
+        <details>
+          <summary>Operations<svg width="16" height="16" aria-hidden="true"><use href="#i-chevron"/></svg></summary>
+          <ul>
+            <li><a href="docs/operations/troubleshooting/">Troubleshooting<small>Grouped by what you see, with the log lines</small></a></li>
+            <li><a href="docs/operations/upgrading-from-1x/">Upgrading from 1.x<small>Coming from PlexWatch</small></a></li>
+            <li><a href="docs/reference/architecture/">Architecture<small>The runtime shape, for contributors</small></a></li>
+          </ul>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <section class="section more" id="more">
+    <div class="wrap">
+      <div class="more-grid">
+        <article class="reveal">
+          <h3>Who can see what?</h3>
+          <p>Everyone who can read the channel sees the dashboard and, by default, may open stream details, user statistics and global statistics. Three options restrict the buttons to authorized users; channel permissions decide who sees the message. <a href="docs/usage/privacy/">Privacy and visibility</a></p>
+        </article>
+        <article class="reveal">
+          <h3>What does it need?</h3>
+          <p>Docker or Python 3.12, a Discord server you administrate, and a Plex or Jellyfin server the bot can reach by IP or hostname. Tautulli, SABnzbd and Uptime Kuma are optional.</p>
+        </article>
+        <article class="reveal">
+          <h3>Coming from PlexWatch?</h3>
+          <p>MediaWatch is PlexWatch 2.0. Your <code>config.json</code> is converted on the first start and the old file stays untouched. The image path changed and <code>DISCORD_GUILD_ID</code> is now required. <a href="docs/operations/upgrading-from-1x/">Upgrading from 1.x</a></p>
+        </article>
+        <article class="reveal">
+          <h3>What it is not</h3>
+          <p>Not a web app, not a multi-user control panel, not a replacement for Tautulli or Uptime Kuma. It is an operational bot for people who already live in Discord.</p>
+        </article>
+        <article class="reveal">
+          <h3>How is it built?</h3>
+          <p>With extensive help from AI coding assistants. PlexWatch 1.x started that way too; it worked, but its internals were not built to last, and the 2.0 rewrite fixes that.</p>
+        </article>
+        <article class="reveal">
+          <h3>Does it actually run somewhere?</h3>
+          <p>On my own server, since early 2026. The features and fixes come from using it every day, and CI runs the full test suite on every push and pull request.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="foot">
+  <p>
+    Built by <a href="https://github.com/nichtlegacy" rel="noopener">nichtlegacy</a> ·
+    <a href="https://github.com/nichtlegacy/MediaWatch" rel="noopener">Source</a> ·
+    <a href="docs/">Documentation</a> ·
+    <a href="https://github.com/nichtlegacy/MediaWatch/releases" rel="noopener">Releases</a> ·
+    <a href="https://github.com/nichtlegacy/MediaWatch/blob/main/LICENSE" rel="noopener">MIT</a>
+  </p>
+  <p class="credits">Not affiliated with Discord, Plex or Jellyfin. Emoji by <a href="https://github.com/jdecked/twemoji" rel="noopener">Twemoji</a> (CC-BY 4.0).</p>
+</footer>
+
+</body>
+</html>

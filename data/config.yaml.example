@@ -1,0 +1,285 @@
+# MediaWatch Configuration File - Example
+# Copy this file to config.yaml and customize for your setup
+
+# ==============================================================================
+# MEDIA SERVER TYPE - Choose your media server platform
+# ==============================================================================
+# - type: "plex" or "jellyfin" (required)
+# Only ONE media server type is active at a time (exclusive mode)
+media_server:
+  type: "plex"  # Options: "plex" or "jellyfin"
+
+# ==============================================================================
+# DASHBOARD APPEARANCE
+# ==============================================================================
+# - name: Title at the top of the embed
+# - icon_url: Icon shown in author field and thumbnail
+# - footer_icon_url: Icon in the footer
+#   Both take a PNG, JPG or GIF URL Discord can fetch; Discord does not show SVG.
+#   The URLs below are the MediaWatch logo. Replace them with your own, or set
+#   them to "" for no icon (the default when the keys are left out).
+dashboard:
+  name: "Media Server Dashboard"
+  icon_url: "https://mediawatch.nichtlegacy.com/logo.png"
+  footer_icon_url: "https://mediawatch.nichtlegacy.com/logo.png"
+
+# ==============================================================================
+# PLEX CONFIGURATION (used when media_server.type = "plex")
+# ==============================================================================
+# Library Sections: Which libraries to display in the dashboard
+# - show_all: true = show all libraries, false = only listed sections
+# - sections: Key must match EXACT Plex library name (case-sensitive, use quotes for spaces)
+#   - display_name: Name shown in dashboard (can differ from Plex name)
+#   - emoji: Icon displayed next to section name
+#   - show_episodes: true = show episode count for TV shows, false = hide for movies
+plex:
+  show_all: false
+  sections:
+    Movies:
+      display_name: "Movies"
+      emoji: "🎥"
+      show_episodes: false
+    "TV Shows":
+      display_name: "TV Shows"
+      emoji: "📺"
+      show_episodes: true
+    Documentaries:
+      display_name: "Documentaries"
+      emoji: "📚"
+      show_episodes: false
+    "Movies - 4K":
+      display_name: "Movies - 4K"
+      emoji: "🎥"
+      show_episodes: false
+
+# Note: The legacy `plex_sections` key is still supported for backward compatibility,
+# but new or updated configurations should use the `plex` block above.
+
+# ==============================================================================
+# JELLYFIN CONFIGURATION (used when media_server.type = "jellyfin")
+# ==============================================================================
+# Library Sections: Which libraries to display in the dashboard
+# - show_all: true = show all libraries, false = only listed sections
+# - sections: Key must match EXACT Jellyfin library name (case-sensitive)
+#   - display_name: Name shown in dashboard
+#   - emoji: Icon displayed next to section name
+#   - show_episodes: true = show episode count for TV shows
+jellyfin:
+  show_all: true
+  sections:
+    Movies:
+      display_name: "Movies"
+      emoji: "🎥"
+      show_episodes: false
+    "TV Shows":
+      display_name: "TV Shows"
+      emoji: "📺"
+      show_episodes: true
+    Music:
+      display_name: "Music"
+      emoji: "🎵"
+      show_episodes: false
+      
+# Discord Bot Presence: Status text shown below bot name in member list
+# - libraries: Libraries to cycle through when idle (keys of the active platform's sections)
+# - offline_text: Status when the active media server is offline
+# - stream_text: Status with active streams ({count} = stream count, {s} = "s" if plural)
+presence:
+  enabled: true
+
+  # How Discord renders the text next to the bot:
+  #   custom     -> just the text          (default, the 2.0 look)
+  #   watching   -> "Watching <text>"
+  #   listening  -> "Listening to <text>"
+  activity_type: "custom"
+
+  # Circle next to the bot: online | idle | dnd
+  status: "online"
+  offline_status: "dnd"
+
+  # Libraries shown while nothing is streaming. Names only - the display name
+  # and emoji come from the plex/jellyfin block above, so they cannot drift
+  # apart from the dashboard. Append ":episodes" for the episode count.
+  #   libraries: "all"                        # every library the dashboard shows
+  #   libraries: ["Movies", "TV Shows:episodes"]
+  libraries: ["Movies", "TV Shows"]
+
+  offline_text: "🔴 Server Offline!"
+  # Shown when the server answers but rejects the credentials. Empty falls back
+  # to offline_text.
+  auth_failed_text: ""
+  # {count} is the stream count, {s} an "s" when it is not exactly one.
+  stream_text: "{count} active Stream{s} 🟢"
+
+# ==============================================================================
+# DISPLAY - formatting that applies to the dashboard and the presence alike
+# ==============================================================================
+# thousands_separator: "." -> 2.938   "," -> 2,938   " " -> 2 938   "" -> 2938
+# episode_label is appended where an episode count is shown, on the dashboard
+# tile and in a presence.libraries "<name>:episodes" entry: "Shows Episodes".
+# Translate it for a non-English setup, or set "" to drop it.
+display:
+  thousands_separator: "."
+  episode_label: "Episodes"
+
+# Cache: How often to refresh media library cache (in seconds)
+# - library_update_interval: Default 900 (15 minutes). Lower = more API calls, Higher = potentially stale data
+# - user_stats_ttl: Default 60. TTL cache for Tautulli-backed user history/player stats
+cache:
+  library_update_interval: 900
+  user_stats_ttl: 60
+
+# Global Statistics: Settings for Plex/Tautulli-backed global statistics and charts
+# - button_location: Where the Global Stats button should be visible
+#   - "stream_details" = only in Stream Details (default / current behavior)
+#   - "dashboard" = only in the main dashboard
+#   - "both" = in Stream Details and the main dashboard
+# - restrict_to_authorized:
+#   true = only DISCORD_AUTHORIZED_USERS can open the Global Stats button,
+#          everyone else gets an ephemeral rejection
+#   false = everyone in the channel can open global stats (default / current behavior)
+#   Kept separate from stream_details.restrict_to_authorized on purpose: global stats
+#   expose the server-wide watch history of every user, not just what is playing now
+# - page_2:
+#   - time_range: Days to include in Page 2 statistics
+#     Recommended: 7, 30, 90, 365, or "all" for all time
+#     Custom positive integers are also allowed (e.g., 14, 60, 180)
+#     Invalid values fall back to 30
+#     Affects: Peak hours chart, Active users count, Most active day
+global_stats:
+  button_location: "stream_details"
+  restrict_to_authorized: false
+  page_2:
+    time_range: 30  # Last 30 days for all Page 2 statistics
+
+# Stream Controls: Settings for stream actions (Plex and Jellyfin)
+# - kill_stream.default_reason: Prefilled reason text shown in the Kill Stream modal
+#   Users can still edit the message before submitting the action
+#   Plex passes the reason to the client directly. Jellyfin has no reason field on
+#   its stop endpoint, so it is sent as a separate on-screen message beforehand;
+#   Jellyfin clients without DisplayMessage support will not show it.
+stream_controls:
+  kill_stream:
+    default_reason: "Stopped by administrator"
+
+# Stream Details: Settings for the stream details popup (Plex and Jellyfin)
+# - show_ip_for_authorized_users:
+#   true = show the client IP under the existing Connection block, but only to DISCORD_AUTHORIZED_USERS
+#   false = never show client IPs in stream details
+# - restrict_to_authorized:
+#   true = only DISCORD_AUTHORIZED_USERS can open the "Stream N - User" buttons,
+#          everyone else gets an ephemeral rejection
+#   false = everyone in the channel can open stream details (default / current behavior)
+# - links.plex: The "Plex" button at the bottom of the details popup (Plex only)
+#   It jumps to the item in Plex Web; on a phone the Plex app picks the link up and
+#   opens it directly. Music links to the album, because Plex Web has no page for a
+#   single track
+#   The title of the details embed links to the same place, so turning the button
+#   off also turns the title link off
+#   - emoji: Unicode emoji, or a Discord custom emoji as "<:name:id>" / "<a:name:id>"
+#     (animated). A custom emoji has to come from a server the bot is in, or be an
+#     application emoji of the bot. An empty string renders the button without an
+#     icon; an invalid value falls back to the default and logs a warning
+#   - base_url: The Plex Web the link points at. Keep the default to have the link
+#     open in the Plex app on a phone - only app.plex.tv is registered for that
+#     hand-off. A self hosted Plex Web serves the same route and works too, but
+#     stays in the browser: "https://plex.example.com/web" or
+#     "http://192.168.1.10:32400/web". Anything that is not http:// or https://
+#     falls back to the default and logs a warning
+stream_details:
+  show_ip_for_authorized_users: false
+  restrict_to_authorized: false
+  links:
+    plex:
+      enabled: true
+      emoji: "▶️"
+      base_url: "https://app.plex.tv/desktop"
+
+# User Statistics: Customization for Plex/Tautulli user statistics pagination
+# - enabled: true = User Stats button appears in stream details, false = feature disabled
+# - pages: Enable/disable specific pages (order is fixed: 1. behavior, 2. devices, 3. top_content)
+# - time_range: Time range for stats in days (0 = all time, 7, 30, 90, etc.)
+# - top_tv_count: Number of TV shows to display on page 3 (0-10, 0 = hide section)
+# - restrict_to_authorized: true = only DISCORD_AUTHORIZED_USERS may open user stats.
+#   Default false. Separate from stream_details: user stats are one person's whole
+#   watch history, not just what is playing now.
+# Note: Cache duration is hardcoded to 300 seconds (5 minutes)
+# Note: Music/TV/Movies are automatically hidden from content breakdown if user has 0 plays
+user_stats:
+  enabled: true
+  pages:
+    behavior: true      # Page 1: Watch Behavior & Streak
+    devices: true       # Page 2: Devices & Content Types
+    top_content: true   # Page 3: Top TV Shows
+  time_range: 0                    # 0 = all time
+  top_tv_count: 10                 # 0-10
+  restrict_to_authorized: false
+
+# Server: Active media server connection and status settings
+# - offline_threshold: Time in seconds before server is marked as offline (default 300 = 5 min)
+#   Useful for maintenance windows (backups, updates) where server is briefly unavailable
+#   Set to 0 to mark as offline immediately (old behavior)
+#   Maximum recommended: 3600 (1 hour)
+server:
+  offline_threshold: 300  # 5 minutes (adjust based on typical maintenance duration)
+
+# SABnzbd: Download queue display settings (requires SABNZBD_URL and SABNZBD_API_KEY in .env)
+# - show_when_empty: true = show "No active downloads" when empty, false = hide section
+# - show_status_icons: true = show status icons before download names (⏸️ = Paused, 🔍 = Checking, ⏳ = Propagating, 📦 = Fetching, 📥 = Downloading)
+# - diskspace_free_key: Which SABnzbd API disk space value to use for FREE space
+#   - "diskspace1" = Download directory (e.g., SSD where files are downloaded)
+#   - "diskspace2" = Complete directory (e.g., HDD where files are unpacked/moved)
+# - diskspace_total_key: Which SABnzbd API disk space value to use for TOTAL space
+#   - "diskspacetotal1" = Total space of download directory
+#   - "diskspacetotal2" = Total space of complete directory
+# - keywords: Keywords to truncate filenames at (removes release tags, quality, etc.)
+sabnzbd:
+  show_when_empty: false
+  show_status_icons: true
+  diskspace_free_key: "diskspace1"      # Default: Download directory (change to diskspace2 for complete dir)
+  diskspace_total_key: "diskspacetotal1"  # Default: Download directory (change to diskspacetotal2 for complete dir)
+  keywords:
+    # This list REPLACES the built-in default, it is not merged with it.
+    # Anything you drop here stops being recognised.
+    # Languages & Audio
+    - "English"
+    - "ENGLISH"
+    - "German"
+    - "GERMAN"
+    - "DL"           # Dual Language
+    - "Dubbed"
+    - "Subbed"
+    - "AC3"
+    - "AC3D"
+    - "EAC3"
+    - "AAC"
+    - "Atmos"
+    - "5.1"
+    
+    # Resolution
+    - "1080p"
+    - "1080P"
+    - "2160p"
+    - "4K"
+    - "720p"
+    - "UHD"
+    
+    # Video Quality & Features
+    - "HDR"
+    - "DV"           # Dolby Vision
+    - "10bit"
+    
+    # Codecs
+    - "x264"
+    - "x265"
+    - "h264"
+    - "h265"
+    - "HEVC"
+    - "AVC"
+    
+    # Sources & Formats
+    - "WEB"
+    - "BluRay"
+    - "BDRip"
+    - "REPACK"
+    - "Remux"

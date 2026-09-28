@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 300">
+  <!-- Original artwork for the MediaWatch demo, not the show's key art:
+       a terminal session, a glitching title and a red cursor. -->
+  <rect width="200" height="300" fill="#050505"/>
+  <g font-family="'Source Code Pro', Consolas, Menlo, monospace" font-size="8.5" fill="#3a3a3a">
+    <text x="12" y="30">$ whoami</text><text x="12" y="42">elliot</text>
+    <text x="12" y="58">$ ssh root@192.168.1.10</text><text x="12" y="70">Last login: Wed Jun 24</text>
+    <text x="12" y="252">$ ./daemon --quiet</text>
+  </g>
+  <g font-family="Impact, Haettenschweiler, 'Arial Narrow Bold', 'Arial Black', sans-serif" font-weight="900" font-size="54" text-anchor="middle">
+    <text x="97" y="170" fill="#e8202a" opacity=".85" textLength="172" lengthAdjust="spacingAndGlyphs">MR. ROBOT</text>
+    <text x="103" y="172" fill="#1ee0d0" opacity=".45" textLength="172" lengthAdjust="spacingAndGlyphs">MR. ROBOT</text>
+    <text x="100" y="171" fill="#f4f4f4" textLength="172" lengthAdjust="spacingAndGlyphs">MR. ROBOT</text>
+  </g>
+  <rect x="0" y="146" width="200" height="4" fill="#050505" opacity=".7"/>
+  <g font-family="'Source Code Pro', Consolas, Menlo, monospace" font-size="12" fill="#e9e9e9">
+    <text x="30" y="214">&gt; hello, friend.</text>
+  </g>
+  <rect x="152" y="203" width="8" height="13" fill="#e8202a"/>
+</svg>

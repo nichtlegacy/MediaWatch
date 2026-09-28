@@ -1,0 +1,72 @@
+/* MediaWatch documentation theme.
+ *
+ * The accent is the teal already used by the README badges, so the site and the
+ * repo landing page read as one project. Plex amber and Jellyfin blue are kept
+ * as their own tokens - they identify a platform and should never drift into
+ * the general accent.
+ */
+
+:root {
+  --mw-teal: #0f766e;
+  --mw-teal-light: #14b8a6;
+  --mw-plex: #ebaf00;
+  --mw-jellyfin: #00a4dc;
+}
+
+[data-md-color-scheme="default"] {
+  --md-primary-fg-color: var(--mw-teal);
+  --md-accent-fg-color: var(--mw-teal);
+  --md-typeset-a-color: var(--mw-teal);
+}
+
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color: var(--mw-teal);
+  --md-accent-fg-color: var(--mw-teal-light);
+  --md-typeset-a-color: var(--mw-teal-light);
+  /* Slightly deeper than the stock slate so code blocks separate from the page. */
+  --md-default-bg-color: hsl(210, 15%, 12%);
+}
+
+/* Tables carry most of the reference material here - the config options, the
+ * command list, the platform matrix. Stock Material renders them airy; tighter
+ * rows keep a long option table scannable. */
+.md-typeset table:not([class]) th {
+  background: var(--md-primary-fg-color);
+  color: #fff;
+  font-weight: 600;
+}
+
+.md-typeset table:not([class]) td,
+.md-typeset table:not([class]) th {
+  padding: 0.5rem 0.9rem;
+}
+
+/* Inline code inside tables competes with the surrounding text otherwise.
+ * Relative to the cell text: Material's rem is 20px, so a rem value made the
+ * code larger than the table it sits in. */
+.md-typeset table:not([class]) code {
+  font-size: 0.85em;
+}
+
+/* The card grid on the landing page. */
+.md-typeset .grid.cards > ul > li {
+  border-radius: 0.4rem;
+  border-color: var(--md-default-fg-color--lightest);
+  transition: border-color 120ms, box-shadow 120ms;
+}
+
+.md-typeset .grid.cards > ul > li:hover {
+  border-color: var(--md-accent-fg-color);
+  box-shadow: none;
+}
+
+/* Platform tokens, for prose that names one server explicitly. */
+.mw-plex {
+  color: var(--mw-plex);
+  font-weight: 600;
+}
+
+.mw-jellyfin {
+  color: var(--mw-jellyfin);
+  font-weight: 600;
+}

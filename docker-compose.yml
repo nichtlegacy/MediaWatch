@@ -1,0 +1,18 @@
+services:
+  mediawatch:
+    build:
+      context: .
+    image: mediawatch:local
+    container_name: mediawatch
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      RUNNING_IN_DOCKER: "true"
+      # The bot drops to uid/gid 1000 after seeding ./data. Set these to the
+      # account that owns ./data on the host if you edit config.yaml from
+      # outside the container (Unraid share: PUID=99, PGID=100).
+      # PUID: "1000"
+      # PGID: "1000"
+    volumes:
+      - ./data:/app/data

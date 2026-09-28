@@ -1,0 +1,952 @@
+/* MediaWatch landing page.
+
+   Page layout and materials follow the AstroBar and ILoveMusic sites (which in
+   turn follow CodexBar, MIT): loose sections split by hairlines, pills, a nav
+   glow that follows the pointer. Dark only.
+
+   The hero is a Discord client rebuilt in markup. Its values come from
+   Discord's own web-client CSS (the "Dark" theme since the 2025 refresh), not
+   from the older #313338 palette most references still list. gg sans is not
+   licensed for redistribution, so Noto Sans and Source Code Pro stand in, the
+   same fallbacks Discord names in its own font stacks.
+
+   Accents: MediaWatch teal from the docs theme, Plex amber (#E5A00D) and
+   Jellyfin blue (#00A4DC) exactly as the bot colours its detail embeds. */
+
+@font-face { font-family: "Geist"; src: url("fonts/Geist-Variable.woff2") format("woff2"); font-weight: 100 900; font-display: swap; }
+@font-face { font-family: "Geist Mono"; src: url("fonts/GeistMono-Variable.woff2") format("woff2"); font-weight: 100 900; font-display: swap; }
+@font-face { font-family: "Noto Sans"; src: url("fonts/NotoSans-Variable.woff2") format("woff2"); font-weight: 100 900; font-display: swap; }
+@font-face { font-family: "Source Code Pro"; src: url("fonts/SourceCodePro-Variable.woff2") format("woff2"); font-weight: 200 900; font-display: swap; }
+
+:root {
+  --bg: #0a0a0c;
+  --ink: #f4f4f6;
+  --ink-2: #b4b4be;
+  --ink-3: #7e7e8a;
+  --ink-4: #585862;
+  --line: rgba(255, 255, 255, 0.08);
+  --line-2: rgba(255, 255, 255, 0.13);
+  --fill: rgba(255, 255, 255, 0.045);
+  --teal: #14b8a6;
+  --teal-ink: #5eead4;
+  --plex: #e5a00d;
+  --jellyfin: #00a4dc;
+
+  --sans: "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  --header: 64px;
+  --wrap: 1232px;
+  --gutter: clamp(20px, 4vw, 48px);
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; scroll-padding-top: 80px; background: var(--bg); -webkit-text-size-adjust: 100%; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+img { max-width: 100%; height: auto; display: block; }
+a { color: inherit; }
+svg { flex-shrink: 0; }
+code, kbd, pre { font-family: var(--mono); }
+[hidden] { display: none !important; }
+
+.sprite { position: absolute; width: 0; height: 0; overflow: hidden; }
+.wrap { width: 100%; max-width: var(--wrap); margin-inline: auto; padding-inline: var(--gutter); }
+
+.skip { position: absolute; left: -9999px; background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 8px; }
+.skip:focus { left: 20px; top: 20px; z-index: 60; }
+
+:where(a, button, summary):focus-visible { outline: 2px solid var(--teal); outline-offset: 3px; border-radius: 8px; }
+::selection { background: rgba(20, 184, 166, 0.35); }
+
+/* ---------- type ---------- */
+
+h1, h2, h3 { margin: 0; font-weight: 620; }
+h1 { font-size: clamp(40px, 4.3vw, 66px); line-height: 1.02; letter-spacing: -0.052em; text-wrap: balance; }
+h2 { font-size: clamp(36px, 4.2vw, 58px); line-height: 1.02; letter-spacing: -0.05em; }
+h3 { font-size: 18px; line-height: 1.3; letter-spacing: -0.022em; font-weight: 600; }
+
+.lede { margin: 0; font-size: clamp(17px, 1.35vw, 19px); line-height: 1.5; letter-spacing: -0.012em; color: var(--ink-2); }
+.lede code, .stack-head code, .more code, .step code, .wiki code, .ticks code {
+  font-size: 0.86em; padding: 1px 6px; border-radius: 5px; background: var(--fill); color: var(--ink-2);
+}
+.stack-head a, .more a, .foot a, .step a {
+  color: var(--ink-2);
+  text-decoration: underline; text-decoration-color: var(--line-2); text-underline-offset: 3px;
+  transition: color 160ms ease, text-decoration-color 160ms ease;
+}
+.stack-head a:hover, .more a:hover, .foot a:hover, .step a:hover { color: var(--ink); text-decoration-color: currentColor; }
+
+/* ---------- buttons ---------- */
+
+.pill {
+  display: inline-flex; align-items: center; gap: 8px;
+  height: 38px; padding: 0 16px;
+  border-radius: 999px;
+  font-size: 14.5px; font-weight: 550; letter-spacing: -0.01em;
+  text-decoration: none; white-space: nowrap;
+  transition: transform 160ms var(--ease), background-color 180ms ease, border-color 180ms ease, color 180ms ease;
+}
+.pill:active { transform: scale(0.97); }
+.pill.lg { height: 46px; padding: 0 22px; font-size: 15.5px; }
+.solid { background: var(--ink); color: #09090b; }
+.solid:hover { background: #fff; }
+.ghost { color: var(--ink-2); border: 1px solid var(--line-2); background: rgba(255, 255, 255, 0.02); }
+.ghost:hover { color: var(--ink); border-color: rgba(255, 255, 255, 0.24); background: var(--fill); }
+
+.icon-btn {
+  display: grid; place-items: center;
+  width: 38px; height: 38px;
+  border-radius: 999px;
+  color: var(--ink-3);
+  transition: color 160ms ease, background-color 160ms ease;
+}
+.icon-btn:hover { color: var(--ink); background: var(--fill); }
+
+@media (prefers-reduced-motion: reduce) {
+  .pill { transition: none; }
+  .pill:active { transform: none; }
+}
+
+/* ---------- header ---------- */
+
+.top {
+  position: fixed; inset: 0 0 auto; z-index: 40;
+  height: var(--header);
+  display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
+  padding-inline: calc(var(--gutter) - 8px);
+  border-bottom: 1px solid transparent;
+  transition: background-color 240ms ease, border-color 240ms ease;
+}
+.top.scrolled {
+  background: rgba(10, 10, 12, 0.72);
+  -webkit-backdrop-filter: saturate(160%) blur(18px);
+  backdrop-filter: saturate(160%) blur(18px);
+  border-bottom-color: var(--line);
+}
+
+.mark {
+  justify-self: start;
+  display: inline-flex; align-items: center; gap: 10px;
+  height: 40px; padding: 0 12px 0 5px;
+  border-radius: 999px;
+  font-weight: 620; font-size: 15.5px; letter-spacing: -0.025em;
+  text-decoration: none;
+  transition: background-color 160ms ease;
+}
+.mark:hover { background: var(--fill); }
+.mark-icon { display: block; width: 30px; height: 30px; }
+.mark-version {
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-family: var(--mono); font-size: 11px; font-weight: 500; letter-spacing: 0;
+  color: var(--ink-3);
+  background: var(--fill);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+.top-nav { position: relative; display: flex; gap: 2px; font-size: 14px; letter-spacing: -0.01em; }
+.nav-glow {
+  position: absolute; top: 0; left: 0;
+  height: 100%; width: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.075);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 380ms var(--ease), width 380ms var(--ease), opacity 200ms ease;
+}
+.nav-glow.no-slide { transition: opacity 200ms ease; }
+.top-nav a {
+  position: relative;
+  display: inline-flex; align-items: center; gap: 7px;
+  height: 36px; padding: 0 14px 0 12px;
+  border-radius: 999px;
+  color: var(--ink-3); text-decoration: none;
+  transition: color 220ms ease;
+}
+.top-nav a svg { opacity: 0.7; transition: color 220ms ease, opacity 220ms ease; }
+.top-nav a.lit { color: var(--ink); }
+.top-nav a.lit svg { color: var(--teal-ink); opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .nav-glow { transition: opacity 200ms ease; } }
+
+.top-actions { justify-self: end; display: flex; align-items: center; gap: 8px; }
+.top .pill { height: 40px; }
+.top .icon-btn {
+  width: 40px; height: 40px;
+  color: var(--ink-2);
+  box-shadow: inset 0 0 0 1px var(--line-2);
+  background: rgba(255, 255, 255, 0.02);
+}
+.top .icon-btn:hover { color: var(--ink); background: var(--fill); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.24); }
+
+/* ---------- hero ---------- */
+
+/* Copy on the left, the Discord client on the right, inset from the edge. */
+.hero {
+  position: relative;
+  display: grid;
+  /* The channel is only as wide as a message needs; copy and channel sit
+     together in the middle instead of the channel stretching to the edge. */
+  grid-template-columns: minmax(340px, 480px) minmax(0, 820px);
+  justify-content: center;
+  gap: clamp(40px, 4vw, 64px);
+  align-items: start;
+  padding: calc(var(--header) + 56px) var(--gutter) 64px;
+  overflow: hidden;
+}
+.hero::before {
+  content: "";
+  position: absolute; inset: 0 0 auto;
+  height: 520px;
+  background:
+    radial-gradient(40% 80% at 78% 0%, rgba(88, 101, 242, 0.16), transparent 70%),
+    radial-gradient(30% 60% at 30% 0%, rgba(20, 184, 166, 0.10), transparent 70%);
+  pointer-events: none;
+}
+
+/* The headline starts lower than the channel beside it: the copy reads as a
+   column that opens under the channel's title bar, not level with it. */
+.hero-copy { position: relative; z-index: 2; container-type: inline-size; padding-top: 49px; }
+/* Each headline line stays on one line: the size follows the column, and
+   "Your media server," measures 7.85em in Geist at this tracking. */
+.hero-copy h1 { font-size: clamp(32px, 12.4cqi, 64px); white-space: nowrap; }
+.eyebrow {
+  display: flex; align-items: center; gap: 12px;
+  margin: 0 0 22px;
+  font-size: 17px; letter-spacing: -0.015em;
+  color: var(--ink-3);
+}
+.hero-copy h1 { margin-bottom: 26px; }
+.actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 34px; }
+
+/* Demo controls: one labelled row per knob. The selected option of each group
+   sits on a thumb that slides to it, tinted in the colour the embed uses for
+   that state, so the control and the dashboard read the same way. */
+.demo-controls {
+  display: grid; gap: 12px;
+  margin-top: 40px; padding-top: 26px;
+  border-top: 1px solid var(--line);
+}
+.demo-label { margin: 0 0 2px; font-size: 14px; color: var(--ink-3); }
+.demo-row { display: grid; grid-template-columns: 64px auto; align-items: center; justify-content: start; gap: 12px; }
+.demo-key { font-size: 13px; font-weight: 550; letter-spacing: -0.005em; color: var(--ink-4); }
+
+[data-tone="plex"] { --tone: var(--plex); }
+[data-tone="jellyfin"] { --tone: var(--jellyfin); }
+[data-tone="online"] { --tone: #2ecc71; }
+[data-tone="offline"] { --tone: #e74c3c; }
+[data-tone="auth"] { --tone: #e67e22; }
+
+/* Concentric: 3px of padding around 16px-radius options gives the 19px outer. */
+.seg {
+  position: relative; isolation: isolate;
+  display: inline-flex; padding: 3px; gap: 2px;
+  border-radius: 19px;
+  background: rgba(255, 255, 255, 0.03);
+  box-shadow: inset 0 0 0 1px var(--line-2);
+}
+.seg-thumb {
+  position: absolute; z-index: -1; top: 3px; left: 0;
+  width: var(--thumb-w, 0); height: 32px;
+  border-radius: 16px;
+  transform: translateX(var(--thumb-x, 0));
+  background: color-mix(in srgb, var(--tone, #fff) 16%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tone, #fff) 34%, transparent);
+  transition-property: transform, width, background-color, box-shadow;
+  transition-duration: 220ms;
+  transition-timing-function: var(--ease);
+}
+/* The first position is set without motion; see app.js. */
+.seg:not(.is-ready) .seg-thumb { transition: none; }
+.seg button {
+  display: inline-flex; align-items: center; gap: 8px;
+  height: 32px; padding: 0 13px;
+  border: 0; border-radius: 16px;
+  background: none; color: var(--ink-3);
+  font: inherit; font-size: 13.5px; font-weight: 550; letter-spacing: -0.01em;
+  white-space: nowrap;
+  cursor: pointer;
+  transition-property: color, scale;
+  transition-duration: 160ms;
+  transition-timing-function: ease;
+}
+.seg button:active { scale: 0.96; }
+.seg button[aria-checked="true"] { color: var(--ink); }
+.seg .dot {
+  width: 7px; height: 7px;
+  background: color-mix(in srgb, var(--tone) 55%, transparent);
+  transition-property: background-color, box-shadow;
+  transition-duration: 160ms;
+  transition-timing-function: ease;
+}
+.seg button[aria-checked="true"] .dot {
+  background: var(--tone);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--tone) 60%, transparent);
+}
+
+/* Downloading is on or off, not one of several: a switch, not a segment. */
+.switch {
+  display: inline-flex; align-items: center; gap: 10px; justify-self: start;
+  height: 38px; padding: 0 14px 0 8px;
+  border: 0; border-radius: 19px;
+  background: rgba(255, 255, 255, 0.03);
+  box-shadow: inset 0 0 0 1px var(--line-2);
+  color: var(--ink-3);
+  font: inherit; font-size: 13.5px; font-weight: 550; letter-spacing: -0.01em;
+  cursor: pointer;
+  transition-property: color, scale;
+  transition-duration: 160ms;
+  transition-timing-function: ease;
+}
+.switch:active { scale: 0.96; }
+.switch[aria-pressed="true"] { color: var(--ink); }
+.switch-track {
+  position: relative; flex: none;
+  width: 34px; height: 20px; border-radius: 10px;
+  background: rgba(255, 255, 255, 0.12);
+  transition: background-color 160ms ease;
+}
+.switch-track::after {
+  content: ""; position: absolute; top: 3px; left: 3px;
+  width: 14px; height: 14px; border-radius: 7px;
+  background: var(--ink-2);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+  transition-property: transform, background-color;
+  transition-duration: 220ms;
+  transition-timing-function: var(--ease);
+}
+.switch[aria-pressed="true"] .switch-track { background: #2ecc71; }
+.switch[aria-pressed="true"] .switch-track::after { transform: translateX(14px); background: #fff; }
+.switch:disabled { opacity: 0.4; cursor: not-allowed; }
+.switch:disabled:active { scale: 1; }
+
+@media (hover: hover) and (pointer: fine) {
+  .seg button:hover, .switch:hover:not(:disabled) { color: var(--ink); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .seg-thumb, .switch-track::after { transition-property: background-color, box-shadow; }
+}
+
+.dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; }
+.dot.plex { background: var(--plex); box-shadow: 0 0 10px rgba(229, 160, 13, 0.6); }
+.dot.jellyfin { background: var(--jellyfin); box-shadow: 0 0 10px rgba(0, 164, 220, 0.6); }
+
+.hero-demo { position: relative; z-index: 1; min-width: 0; container-type: inline-size; }
+
+/* Entrance. */
+.js .hero-copy > * { opacity: 0; transform: translateY(14px); }
+.js .hero-demo { opacity: 0; transform: translateX(24px); }
+.js .hero.is-on .hero-copy > * {
+  opacity: 1; transform: none;
+  transition: opacity 700ms var(--ease), transform 700ms var(--ease);
+  transition-delay: calc(var(--i, 0) * 70ms);
+}
+.js .hero.is-on .hero-demo { opacity: 1; transform: none; transition: opacity 800ms ease 200ms, transform 900ms var(--ease) 200ms; }
+@media (prefers-reduced-motion: reduce) {
+  .js .hero-copy > *, .js .hero-demo { opacity: 1; transform: none; transition: none !important; }
+}
+
+/* ---------- Discord client ---------- */
+
+.dc {
+  --d-lowest: #121214;
+  --d-lower: #1a1a1e;
+  --d-low: #202024;
+  --d-embed: #242429;
+  --d-text: #efeff1;
+  --d-strong: #fbfbfb;
+  --d-muted: #96979e;
+  --d-ts: #81828a;
+  --d-link: #4d96ee;
+  --d-b-subtle: rgba(151, 151, 159, 0.122);
+  --d-b-normal: rgba(151, 151, 159, 0.2);
+  --d-code-bg: rgba(88, 101, 242, 0.078);
+  --d-code-fg: #e4e4e6;
+  --d-brand: #5865f2;
+  --d-font: "gg sans", "Noto Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --d-mono: "gg mono", "Source Code Pro", Consolas, "Andale Mono WT", "Andale Mono", "Lucida Console", monospace;
+
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  /* No fixed height: the channel is as tall as its messages, so nothing in
+     it scrolls on its own. */
+  overflow: hidden;
+  border-radius: 14px;
+  background: var(--d-lowest);
+  color: var(--d-text);
+  font: 400 16px/1.375 var(--d-font);
+  -webkit-font-smoothing: antialiased;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.09),
+    0 50px 120px -40px rgba(0, 0, 0, 0.9),
+    0 -30px 120px -60px rgba(88, 101, 242, 0.45);
+}
+
+.dc-avatar {
+  position: relative;
+  display: grid; place-items: center;
+  width: 32px; height: 32px; border-radius: 50%;
+  font-size: 13px; font-weight: 600; color: #fff;
+  flex-shrink: 0;
+}
+.dc-avatar.bot { background: #07070c; }
+/* Inside the member list's round box the picture fills it; as a message or
+   reply avatar the image keeps the size its own class gives it. */
+.dc-avatar.bot > img { display: block; width: 100%; height: 100%; border-radius: 50%; }
+img.dc-avatar { display: block; border-radius: 50%; }
+
+.dc-main {
+  display: grid; grid-template-rows: 49px auto;
+  min-width: 0;
+  background: var(--d-lower);
+}
+.dc-head {
+  display: flex; align-items: center; gap: 8px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--d-b-subtle);
+  color: var(--d-strong); font-size: 16px; font-weight: 600;
+  white-space: nowrap; overflow: hidden;
+}
+.dc-head > svg { color: var(--d-ts); }
+.dc-body { display: grid; grid-template-columns: minmax(0, 1fr) 200px; min-height: 0; }
+
+.dc-members {
+  padding: 8px 8px 0;
+  background: var(--d-lower);
+  border-left: 1px solid var(--d-b-subtle);
+  overflow: hidden;
+}
+.dc-members ul { margin: 0; padding: 0; list-style: none; }
+.dc-cat {
+  padding: 16px 8px 4px;
+  font-size: 12px; font-weight: 600; letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--d-muted);
+}
+.dc-member { display: flex; align-items: center; gap: 12px; padding: 6px 8px; border-radius: 8px; }
+.dc-member-name { min-width: 0; }
+.dc-member-name b { display: block; font-size: 15px; font-weight: 500; line-height: 20px; color: var(--d-strong); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dc-member-name b .msg-tag { margin-left: 4px; }
+.dc-member-name small { display: block; font-size: 12px; line-height: 16px; color: var(--d-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dc-member-name small img.emoji { width: 14px; height: 14px; vertical-align: -2px; }
+.dc-status {
+  position: absolute; right: -2px; bottom: -2px;
+  width: 14px; height: 14px; border-radius: 50%;
+  border: 3px solid var(--d-lower);
+  background: #45a366;
+}
+/* Discord's Do Not Disturb: a red disc with a bar cut out. */
+.dc-status.dnd { background: #da3e44; }
+.dc-status.dnd::after { content: ""; position: absolute; left: 1px; right: 1px; top: 3px; height: 2px; border-radius: 1px; background: var(--d-lower); }
+
+/* The member list only shows where the chat keeps its message width. */
+@container (max-width: 790px) { .dc-body { grid-template-columns: minmax(0, 1fr); } .dc-members { display: none; } }
+.dc-scroll { position: relative; padding-bottom: 20px; }
+.msg-tag {
+  display: inline-flex; align-items: center;
+  height: 15px; padding: 0 4.4px;
+  margin-left: 4px;
+  border-radius: 4px;
+  background: var(--d-brand); color: #fff;
+  font: 600 10px/15px var(--d-font);
+  text-transform: uppercase; font-style: normal;
+  vertical-align: 1px;
+}
+
+/* ---------- messages ---------- */
+
+.dc-messages { margin: 0; padding: 0; list-style: none; }
+.dc-noscript { padding: 16px; color: var(--d-muted); }
+.js .dc-noscript { display: none; }
+
+.msg {
+  position: relative;
+  margin-top: 17px;
+  padding: 2px 16px 2px 72px;
+  min-height: 44px;
+}
+.msg.eph { background: rgba(88, 101, 242, 0.05); }
+.msg.eph::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 2px; background: var(--d-brand); }
+.msg.new { animation: msg-in 380ms var(--ease) both; }
+@keyframes msg-in { from { opacity: 0; transform: translateY(8px); } }
+@media (prefers-reduced-motion: reduce) { .msg.new { animation: none; } }
+
+.msg-avatar { position: absolute; left: 16px; top: 4px; width: 40px; height: 40px; }
+.msg-head { line-height: 22px; min-height: 22px; }
+.msg-user { font-size: 16px; font-weight: 500; color: var(--d-strong); }
+.msg-ts { margin-left: 4px; font-size: 12px; font-weight: 500; color: var(--d-ts); }
+/* Reply context: a spine from the avatar up to a one-line preview. */
+.msg-reply {
+  position: relative;
+  display: flex; align-items: center; gap: 4px;
+  height: 22px; margin-bottom: 4px;
+  font-size: 14px; line-height: 18px; color: var(--d-muted);
+  white-space: nowrap; overflow: hidden;
+}
+.msg-reply::before {
+  content: ""; position: absolute; left: -36px; top: 10px;
+  width: 33px; height: 12px;
+  border: 2px solid #4e5058; border-right: 0; border-bottom: 0;
+  border-top-left-radius: 6px;
+}
+.reply-avatar { width: 16px; height: 16px; margin-right: 2px; }
+.msg-reply .msg-tag { margin: 0; }
+.msg-reply b { font-weight: 500; color: var(--d-strong); margin-right: 2px; }
+.msg-reply i { font-style: italic; }
+.reply-icon { margin-left: 2px; color: var(--d-muted); }
+
+.eph-note {
+  display: flex; align-items: center; gap: 4px;
+  margin-top: 6px;
+  font-size: 12px; line-height: 16px;
+  color: var(--d-muted);
+}
+.eph-note button {
+  padding: 0; border: 0; background: none;
+  font: inherit; color: var(--d-link); cursor: pointer;
+}
+.eph-note button:hover { text-decoration: underline; }
+
+/* ---------- embeds ---------- */
+
+.embed {
+  display: grid;
+  max-width: 520px;
+  margin-top: 4px;
+  background: var(--d-embed);
+  border: 1px solid var(--d-b-subtle);
+  border-left: 4px solid var(--c, var(--d-b-normal));
+  border-radius: 4px;
+  transition: border-color 300ms ease;
+}
+.embed-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  padding: 2px 16px 16px 12px;
+  min-width: 0;
+}
+.embed-grid.has-thumb { grid-template-columns: minmax(0, 1fr) auto; }
+.embed-grid > * { grid-column: 1; margin-top: 8px; min-width: 0; }
+.embed-author { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; line-height: 22px; color: var(--d-strong); }
+.embed-author .ico { width: 24px; height: 24px; border-radius: 50%; }
+.embed-title { font-size: 16px; font-weight: 600; line-height: 22px; color: var(--d-strong); }
+.embed-title a { color: var(--d-link); text-decoration: none; }
+.embed-title a:hover { text-decoration: underline; }
+.embed-desc { font-size: 14px; line-height: 18px; white-space: pre-line; }
+.embed-thumb {
+  grid-column: 2 !important; grid-row: 1 / 8;
+  justify-self: end;
+  margin-left: 16px;
+  max-width: 80px; max-height: 80px;
+}
+/* Each field spans two rows of the fields grid, name and value, and shares
+   them with its neighbours through subgrid: a name that wraps pushes the
+   whole row's names down together, so the value boxes of a row stay level. */
+.embed-fields { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 8px; }
+.field {
+  grid-column: 1 / 13; grid-row: span 2;
+  display: grid; grid-template-rows: subgrid; row-gap: 2px;
+  align-content: start;
+  min-width: 0; font-size: 14px; line-height: 18px; overflow-wrap: break-word;
+}
+.field-value ol, .embed-desc ol { margin: 0; padding-left: 1.6em; white-space: normal; }
+.field-value li { margin-top: 2px; }
+.field-name { font-weight: 600; color: var(--d-strong); align-self: end; }
+.field-value { white-space: pre-line; overflow-wrap: anywhere; }
+.embed-image { grid-column: 1 / -1 !important; max-width: 400px; margin-top: 16px; border-radius: 4px; overflow: hidden; }
+.embed-footer { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 500; line-height: 16px; color: var(--d-text); }
+.embed-footer .ico { width: 20px; height: 20px; border-radius: 50%; }
+.embed-footer .sep { margin: 0 -4px; }
+
+.embed pre {
+  margin: 6px 0 0;
+  max-width: 100%;
+  border-radius: 4px;
+  font-family: var(--d-mono);
+}
+.embed pre code, .icode {
+  background: var(--d-code-bg);
+  border: 1px solid var(--d-b-normal);
+  border-radius: 4px;
+  color: var(--d-code-fg);
+  font-family: var(--d-mono);
+}
+.embed pre code {
+  display: block;
+  padding: 0.5em;
+  font-size: 14px; line-height: 18px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.icode { font-size: 85%; padding: 0 0.2em; margin: -0.2em 0; line-height: 1.3; }
+.ansi-33 { color: #b58900; }
+.ansi-37 { color: #fff; }
+.ansi-b { font-weight: 700; }
+/* Progress bars: the ▓/░ glyphs are kept but transparent and redrawn as the
+   shade patterns Discord shows, in the code colour: a 2x2 pixel cell with
+   three pixels lit for ▓ and a checkerboard for ░, as measured on a real
+   Discord screenshot.
+   A whole-pixel tile stays crisp at any integer pixel ratio, where the font's
+   own shade glyphs blur into flat grey. */
+/* Each run is a box exactly one line tall, with the pattern clipped to its
+   middle: the bar lines up with the text beside it and never reaches into
+   the lines above or below, where it would run under their emoji. */
+.bar-on, .bar-off {
+  display: inline-block;
+  box-sizing: border-box;
+  height: 1lh;
+  padding-block: 0.2lh;
+  vertical-align: top;
+  background-clip: content-box;
+  background-size: 2px 2px;
+  background-repeat: repeat;
+  color: transparent;
+}
+.bar-on { background-image: conic-gradient(var(--d-code-fg) 0 75%, transparent 0); }
+.bar-off { background-image: conic-gradient(var(--d-code-fg) 0 25%, transparent 0 50%, var(--d-code-fg) 0 75%, transparent 0); }
+.dts { padding: 0 2px; border-radius: 3px; background: rgba(151, 151, 159, 0.2); }
+
+.dc img.emoji, .snip img.emoji {
+  display: inline;
+  width: 1.375em; height: 1.375em;
+  vertical-align: bottom;
+  object-fit: contain;
+  margin: 0 0.05em 0 0.1em;
+}
+.embed-title img.emoji, .field-name img.emoji, .embed-desc img.emoji { width: 1.2em; height: 1.2em; vertical-align: -0.25em; }
+/* In monospace an emoji takes two columns; 1.2em keeps it that wide and
+   inside the 18px line, so the block's columns stay aligned. */
+.dc img.emoji.in-code, .snip img.emoji.in-code { width: 1.2em; height: 1.2em; margin: 0; vertical-align: -0.2em; }
+
+/* Posters are original SVGs in landing/posters/; Discord fits a 2:3
+   thumbnail into 80px, so 54x80. */
+.poster { display: block; width: 54px; height: 80px; border-radius: 4px; }
+.logo-tile { display: grid; place-items: center; width: 80px; height: 80px; border-radius: 8px; }
+.logo-tile.plex, .ico.plex { color: #f5c04a; background: linear-gradient(145deg, #3a2c10, #1c1608); }
+.logo-tile.jellyfin, .ico.jellyfin { color: #5fd0f5; background: linear-gradient(145deg, #0f2f40, #0a1620); }
+.ico { display: grid; place-items: center; flex-shrink: 0; overflow: hidden; }
+.ico.user { background: #c2410c; color: #fff; font-size: 10px; font-weight: 700; }
+
+/* ---------- components ---------- */
+
+.row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  height: 32px; min-width: 60px;
+  padding: 3px 11px;
+  border: 1px solid rgba(255, 255, 255, 0.078);
+  border-radius: 8px;
+  font: 500 14px/18px var(--d-font);
+  color: #fff;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 170ms ease;
+}
+.btn img.emoji { width: 18px; height: 18px; margin: 0; }
+.btn.primary { background: #5865f2; }
+.btn.primary:hover { background: #4452bb; }
+.btn.secondary, .btn.link { background: rgba(151, 151, 159, 0.122); border-color: rgba(151, 151, 159, 0.039); color: #fbfbfb; }
+.btn.secondary:hover, .btn.link:hover { background: rgba(151, 151, 159, 0.2); }
+.btn.success { background: #008545; }
+.btn.danger { background: #d22d39; }
+.btn.danger:hover { background: #a9232e; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn.primary:disabled:hover { background: #5865f2; }
+.btn.secondary:disabled:hover { background: rgba(151, 151, 159, 0.122); }
+.btn.link svg { width: 16px; height: 16px; opacity: 0.8; }
+.btn:focus-visible { outline: 2px solid #00a8fc; outline-offset: 1px; }
+
+/* The "thinking" state between a click and the ephemeral reply. */
+.thinking { display: inline-flex; align-items: center; gap: 6px; font-size: 16px; color: var(--d-muted); font-style: italic; }
+.thinking i { width: 6px; height: 6px; border-radius: 50%; background: currentColor; animation: think 1.2s infinite ease-in-out; font-style: normal; }
+.thinking i:nth-child(2) { animation-delay: 0.15s; }
+.thinking i:nth-child(3) { animation-delay: 0.3s; }
+@keyframes think { 0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); } 40% { opacity: 1; transform: none; } }
+
+/* ---------- modal ---------- */
+
+.dc-modal-layer {
+  /* Anchored to .dc, so the dimmer covers the whole client as in Discord. */
+  position: absolute; inset: 0; z-index: 5;
+  display: grid; place-items: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.7);
+  animation: fade 160ms ease both;
+}
+@keyframes fade { from { opacity: 0; } }
+.modal {
+  width: min(440px, 100%);
+  border-radius: 12px;
+  background: var(--d-low);
+  border: 1px solid var(--d-b-subtle);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+  animation: pop 220ms var(--ease) both;
+}
+@keyframes pop { from { opacity: 0; transform: scale(0.94); } }
+.modal-head { display: flex; align-items: center; gap: 12px; padding: 16px 16px 0; }
+.modal-head .ico { width: 24px; height: 24px; border-radius: 50%; }
+.modal-head h4 { margin: 0; font-size: 20px; font-weight: 600; color: var(--d-strong); }
+.modal-x { margin-left: auto; padding: 4px; border: 0; background: none; color: var(--d-muted); cursor: pointer; border-radius: 4px; }
+.modal-x:hover { color: var(--d-strong); }
+.modal-body { padding: 16px; }
+.modal-body label { display: block; margin-bottom: 8px; font-size: 16px; font-weight: 500; color: var(--d-strong); }
+.modal-body label span { color: #f57976; margin-left: 2px; }
+.modal-body input {
+  width: 100%; height: 44px; padding: 0 12px;
+  border-radius: 8px;
+  border: 1px solid var(--d-b-normal);
+  background: var(--d-lower);
+  color: var(--d-text);
+  font: 400 16px var(--d-font);
+}
+.modal-body input:focus { outline: none; border-color: #00a8fc; }
+.modal-foot { display: flex; justify-content: flex-end; gap: 8px; padding: 0 16px 16px; }
+.modal-foot .btn { height: 38px; padding: 2px 16px; }
+
+/* ---------- sections ---------- */
+
+.section {
+  padding: clamp(80px, 9vw, 120px) 0; border-top: 1px solid var(--line);
+  /* A navbar jump lands on the section's top edge, 16 px under the header,
+     which left the whole top padding as an empty strip above the title.
+     Pull the target down by that padding so the title sits 40 px under the
+     header and the divider slides out of view behind it. */
+  scroll-margin-top: calc(24px - clamp(80px, 9vw, 120px));
+}
+.section-head { margin-bottom: clamp(44px, 5vw, 64px); }
+.stack-head p { margin: 20px 0 0; max-width: 62ch; font-size: 17px; color: var(--ink-3); }
+
+.features { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 56px 40px; }
+.feature { display: flex; flex-direction: column; }
+.feature p { margin: 10px 0 26px; font-size: 15.5px; color: var(--ink-3); }
+.feature-art {
+  position: relative;
+  margin-top: auto;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  border-radius: 20px;
+  display: flex; justify-content: center; align-items: center;
+  padding: 18px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+.art-teal { background: radial-gradient(70% 60% at 12% 0%, rgba(20, 184, 166, 0.42), transparent 70%), radial-gradient(80% 70% at 100% 100%, rgba(15, 50, 60, 0.95), transparent 70%), #061312; }
+.art-amber { background: radial-gradient(70% 60% at 90% 0%, rgba(229, 160, 13, 0.42), transparent 70%), radial-gradient(80% 70% at 0% 100%, rgba(80, 40, 10, 0.6), transparent 70%), #140e05; }
+.art-green { background: radial-gradient(70% 60% at 100% 0%, rgba(46, 204, 113, 0.36), transparent 70%), radial-gradient(80% 70% at 0% 100%, rgba(20, 80, 60, 0.7), transparent 70%), #05120c; }
+.art-blue { background: radial-gradient(70% 60% at 0% 0%, rgba(0, 164, 220, 0.42), transparent 70%), radial-gradient(80% 70% at 100% 100%, rgba(88, 101, 242, 0.4), transparent 70%), #060d18; }
+
+/* Snippets reuse the Discord classes outside the client. */
+.snip {
+  width: 100%;
+  font: 400 16px/1.375 "gg sans", "Noto Sans", "Helvetica Neue", Arial, sans-serif;
+  color: #efeff1;
+  --d-embed: #242429; --d-strong: #fbfbfb; --d-text: #efeff1; --d-link: #4d96ee;
+  --d-b-subtle: rgba(151, 151, 159, 0.122); --d-b-normal: rgba(151, 151, 159, 0.2);
+  --d-code-bg: rgba(88, 101, 242, 0.078); --d-code-fg: #e4e4e6;
+  --d-mono: "Source Code Pro", Consolas, monospace; --d-font: "Noto Sans", Arial, sans-serif;
+}
+.feature-art .snip .embed { box-shadow: 0 24px 50px -20px rgba(0, 0, 0, 0.7); }
+/* Outside the client the embeds sit on the page as cards, so they get a
+   softer corner than Discord's 4px. */
+.snip .embed { border-radius: 10px; }
+/* Laid out at a real embed width, then zoomed down to the card: squeezing
+   the embed instead would wrap every field and stop looking like Discord. */
+.feature-art .snip { flex: none; width: 500px; zoom: 0.86; }
+.snip-wide { display: grid; justify-items: center; }
+.snip-wide .embed { box-shadow: 0 40px 90px -30px rgba(0, 0, 0, 0.9); }
+
+.duo {
+  display: grid; grid-template-columns: minmax(0, 1.12fr) minmax(0, 0.88fr);
+  gap: clamp(48px, 7vw, 104px); align-items: center;
+}
+.duo.flip { grid-template-columns: minmax(0, 0.88fr) minmax(0, 1.12fr); }
+.duo-copy { display: flex; flex-direction: column; gap: 22px; max-width: 32em; }
+.duo-copy h2 { margin-bottom: 4px; }
+.duo-copy .pill { align-self: flex-start; margin-top: 8px; }
+.align-end { text-align: right; justify-self: end; align-items: flex-end; }
+.align-end .pill { align-self: flex-end; }
+.duo-media { position: relative; }
+#streams .duo-media::before, #platforms .duo-media::before {
+  content: ""; position: absolute; inset: -12% 4%;
+  background: radial-gradient(50% 50% at 50% 50%, rgba(229, 160, 13, 0.14), transparent 70%);
+  pointer-events: none;
+}
+#platforms .duo-media::before { background: radial-gradient(50% 50% at 50% 50%, rgba(20, 184, 166, 0.12), transparent 70%); }
+
+.ticks { margin: 0; padding: 0; list-style: none; display: grid; gap: 12px; font-size: 15.5px; color: var(--ink-3); }
+.ticks li { position: relative; padding-left: 22px; }
+.ticks li::before { content: ""; position: absolute; left: 2px; top: 0.62em; width: 7px; height: 7px; border-radius: 50%; background: var(--teal); }
+.ticks b { color: var(--ink); font-weight: 580; }
+
+.scope {
+  position: relative;
+  width: 100%;
+  border-collapse: separate; border-spacing: 0;
+  border-radius: 18px;
+  background: rgba(20, 20, 24, 0.8);
+  box-shadow: inset 0 0 0 1px var(--line-2), 0 40px 90px -30px rgba(0, 0, 0, 0.9);
+  font-size: 14.5px;
+  overflow: hidden;
+}
+.scope th, .scope td { padding: 14px 18px; text-align: left; border-top: 1px solid var(--line); }
+.scope thead th { border-top: 0; font-size: 13px; font-weight: 600; color: var(--ink-3); white-space: nowrap; }
+.scope thead th .dot { margin-right: 8px; vertical-align: 1px; }
+.scope tbody th { font-weight: 500; color: var(--ink); }
+.scope td { color: var(--ink-2); white-space: nowrap; }
+.scope td.yes { color: var(--teal-ink); }
+.scope td.no { color: var(--ink-4); }
+
+.steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px; margin-bottom: 48px; }
+.step p { margin: 10px 0 12px; font-size: 15.5px; color: var(--ink-3); }
+.step a { font-size: 14.5px; }
+.step-n {
+  display: grid; place-items: center;
+  width: 32px; height: 32px; margin-bottom: 18px;
+  border-radius: 10px;
+  font-family: var(--mono); font-size: 14px; font-weight: 600;
+  color: var(--teal-ink);
+  background: rgba(20, 184, 166, 0.12);
+  box-shadow: inset 0 0 0 1px rgba(20, 184, 166, 0.25);
+}
+
+.code {
+  max-width: 720px;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #121215;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.09), 0 40px 90px -30px rgba(0, 0, 0, 0.9);
+}
+.code-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  height: 42px; padding: 0 8px 0 18px;
+  background: #1a1a1e;
+  border-bottom: 1px solid var(--line);
+  font-family: var(--mono); font-size: 12.5px; color: var(--ink-3);
+}
+.copy { display: grid; place-items: center; width: 32px; height: 32px; border: 0; border-radius: 8px; background: none; color: var(--ink-3); cursor: pointer; }
+.copy:hover { color: var(--ink); background: var(--fill); }
+.copy.copied { color: var(--teal-ink); }
+.code pre { margin: 0; padding: 18px 20px 20px; overflow-x: auto; font-size: 13px; line-height: 1.7; color: var(--ink-2); }
+.code .k { color: var(--teal-ink); }
+.code .s { color: #fcd34d; }
+
+/* ---------- docs accordion ---------- */
+
+.docs-duo { align-items: start; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); }
+.wiki { border-top: 1px solid var(--line); }
+.wiki details { border-bottom: 1px solid var(--line); }
+.wiki summary {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 4px;
+  font-size: 19px; font-weight: 580; letter-spacing: -0.02em;
+  cursor: pointer;
+  list-style: none;
+}
+.wiki summary::-webkit-details-marker { display: none; }
+.wiki summary svg { color: var(--ink-3); transition: transform 300ms var(--ease); }
+.wiki details[open] summary svg { transform: rotate(180deg); }
+.wiki summary:hover svg { color: var(--ink); }
+.wiki ul { margin: -4px 0 16px; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px 12px; }
+.wiki details[open] ul { animation: preset-in 420ms var(--ease) both; }
+@keyframes preset-in { from { opacity: 0; transform: translateY(6px); } }
+.wiki a {
+  display: block;
+  padding: 10px 12px;
+  border-radius: 12px;
+  text-decoration: none;
+  font-size: 15px; font-weight: 550;
+  transition: background-color 160ms ease;
+}
+.wiki a:hover { background: var(--fill); }
+.wiki a small { display: block; margin-top: 2px; font-size: 13.5px; font-weight: 400; color: var(--ink-3); }
+@media (prefers-reduced-motion: reduce) { .wiki details[open] ul { animation: none; } }
+
+/* ---------- more ---------- */
+
+.more-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 52px clamp(40px, 6vw, 88px); }
+.more h3 { margin-bottom: 10px; }
+.more p { margin: 0; font-size: 15.5px; color: var(--ink-3); }
+
+/* ---------- footer ---------- */
+
+.foot { padding: 40px var(--gutter) 56px; border-top: 1px solid var(--line); text-align: center; }
+.foot p { margin: 0; font-size: 13.5px; color: var(--ink-4); }
+.foot .credits { margin-top: 8px; font-size: 12.5px; }
+.foot a { color: var(--ink-3); text-decoration: none; }
+
+/* ---------- 404 ---------- */
+
+.notfound { display: grid; align-content: center; min-height: 100dvh; padding-block: 80px; }
+.notfound .eyebrow { margin-bottom: 20px; }
+.notfound h1 { margin-bottom: 22px; }
+
+/* ---------- scroll reveal ---------- */
+
+.js .reveal { opacity: 0; transform: translateY(14px); }
+.js .reveal.in {
+  opacity: 1; transform: none;
+  transition: opacity 700ms var(--ease), transform 700ms var(--ease);
+  transition-delay: calc(var(--i, 0) * 70ms);
+}
+@media (prefers-reduced-motion: reduce) {
+  .js .reveal { opacity: 1; transform: none; }
+  .js .reveal.in { transition: none; }
+}
+
+/* ---------- responsive ---------- */
+
+/* Below this the channel no longer fits beside the copy at message width:
+   stack them, the channel centred under the text. */
+@media (max-width: 1240px) {
+  .hero { grid-template-columns: minmax(0, 820px); min-height: 0; padding: calc(var(--header) + 64px) var(--gutter) 64px; }
+  .hero-copy { max-width: 640px; }
+}
+
+@media (max-width: 1080px) {
+  .features, .steps { grid-template-columns: 1fr; gap: 56px; max-width: 560px; }
+  .feature-art .snip { zoom: 0.96; }
+  .duo, .duo.flip, .docs-duo { grid-template-columns: 1fr; gap: 48px; }
+  .duo.flip .duo-media { order: 2; }
+  .align-end { text-align: left; justify-self: start; align-items: flex-start; }
+  .align-end .pill { align-self: flex-start; }
+}
+
+@media (max-width: 860px) {
+  .top { grid-template-columns: 1fr auto; }
+  .top-nav { display: none; }
+  .more-grid { grid-template-columns: 1fr; gap: 40px; }
+}
+
+@media (max-width: 640px) {
+  .mark-version { display: none; }
+  .top .pill { padding: 0 14px; }
+  .hero { padding-inline: 12px; }
+  .hero-copy { padding-inline: 8px; }
+  .demo-row { grid-template-columns: 48px auto; gap: 10px; }
+  .seg button { padding: 0 11px; gap: 7px; }
+  /* A phone is narrower than one embed. Zooming the client out keeps the
+     embed close to its real width instead of wrapping every field. */
+  .dc { zoom: 0.76; }
+  .msg { padding-left: 64px; padding-right: 12px; }
+  .msg-avatar { left: 12px; }
+  .msg-reply::before { left: -34px; width: 31px; }
+  .wiki ul { grid-template-columns: 1fr; }
+  .scope th, .scope td { padding: 12px; }
+  .scope td { white-space: normal; }
+  .feature-art .snip { zoom: 0.62; }
+}

@@ -1,0 +1,135 @@
+site_name: MediaWatch
+site_description: Discord-first monitoring for self-hosted Plex and Jellyfin servers
+site_url: https://mediawatch.nichtlegacy.com/docs/
+repo_url: https://github.com/nichtlegacy/MediaWatch
+repo_name: nichtlegacy/MediaWatch
+edit_uri: edit/main/docs/
+copyright: MIT licensed
+
+theme:
+  name: material
+  custom_dir: overrides
+  language: en
+  # The MediaWatch mark, shared with the landing page; the header logo leads
+  # back to it (extra.homepage).
+  logo: assets/logo.svg
+  favicon: assets/logo.svg
+  icon:
+    repo: fontawesome/brands/github
+  palette:
+    # Follows the reader's system setting first; the toggles are for overriding it.
+    - media: "(prefers-color-scheme)"
+      toggle:
+        icon: material/brightness-auto
+        name: Follow system
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: teal
+      accent: teal
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: teal
+      accent: teal
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  font:
+    text: Inter
+    code: JetBrains Mono
+  features:
+    # Sections as tabs along the top: the home page hides the sidebar, and
+    # without tabs it had no navigation at all.
+    - navigation.tabs
+    # A section's index page is the section heading itself, instead of a
+    # second "Getting Started" entry under "Getting started".
+    - navigation.indexes
+    - navigation.instant
+    - navigation.instant.progress
+    - navigation.tracking
+    - navigation.sections
+    - navigation.top
+    - navigation.footer
+    - toc.follow
+    - content.code.copy
+    - content.code.annotate
+    - content.action.edit
+    - content.tabs.link
+    - search.suggest
+    - search.highlight
+    - search.share
+
+# Ordered along the life of an install: set it up, run it, tune it, use it,
+# fix it, look things up.
+nav:
+  - Overview: index.md
+  - Getting started:
+      - getting-started/index.md
+      - Discord bot: getting-started/discord-bot.md
+      - Media server: getting-started/media-server.md
+      - First run: getting-started/first-run.md
+  - Deployment:
+      - Docker: deployment/docker.md
+      - Running locally: deployment/local.md
+      - Updating: deployment/updating.md
+  - Configuration:
+      - configuration/index.md
+      - Environment variables: configuration/environment.md
+      - Option reference: configuration/reference.md
+      - Examples: configuration/examples.md
+  - Usage:
+      - Dashboard: usage/dashboard.md
+      - Commands: usage/commands.md
+      - Privacy and visibility: usage/privacy.md
+  - Operations:
+      - Troubleshooting: operations/troubleshooting.md
+      - Upgrading from 1.x: operations/upgrading-from-1x.md
+  - Reference:
+      - Architecture: reference/architecture.md
+
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - md_in_html
+  - tables
+  - footnotes
+  - toc:
+      permalink: true
+      permalink_title: Link to this section
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.keys
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+
+plugins:
+  - search
+
+extra_css:
+  - stylesheets/extra.css
+
+extra:
+  homepage: https://mediawatch.nichtlegacy.com/
+  social:
+    - icon: material/web
+      link: https://mediawatch.nichtlegacy.com/
+      name: MediaWatch website
+    - icon: fontawesome/brands/github
+      link: https://github.com/nichtlegacy/MediaWatch
+      name: MediaWatch on GitHub

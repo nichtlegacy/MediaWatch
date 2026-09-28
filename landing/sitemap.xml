@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- The landing page only; MkDocs writes the documentation's own sitemap to
+     /docs/sitemap.xml, and robots.txt points at both. -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://mediawatch.nichtlegacy.com/</loc>
+    <lastmod>__BUILD_DATE__</lastmod>
+  </url>
+</urlset>

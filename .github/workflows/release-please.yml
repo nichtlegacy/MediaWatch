@@ -1,0 +1,48 @@
+name: Prepare release
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  release-please:
+    name: Update release PR
+    if: >-
+      github.server_url == 'https://github.com' &&
+      (github.event_name == 'workflow_dispatch' ||
+       (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+    permissions:
+      # Writes the release PR, the tag and the GitHub release.
+      contents: write
+      pull-requests: write
+    steps:
+      # Keeps CHANGELOG.md and version.py in sync with the Conventional Commits
+      # on main. It opens a release PR and holds it open, collecting further
+      # commits, until someone merges it - merging is what cuts the release.
+      - id: release
+        uses: googleapis/release-please-action@a02a34c4d625f9be7cb89156071d8567266a2445 # v4.2.0
+        with:
+          config-file: .release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  docker:
+    name: Publish release image
+    needs: release-please
+    if: github.server_url == 'https://github.com' && needs.release-please.outputs.release_created == 'true'
+    permissions:
+      contents: read
+      packages: write
+    uses: ./.github/workflows/release-docker.yml
+    with:
+      tag: ${{ needs.release-please.outputs.tag_name }}

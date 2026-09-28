@@ -1,0 +1,115 @@
+name: Bug report
+description: Something in MediaWatch does not work
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time. The questions below are the ones that
+        decide whether a bug can be reproduced or not, so please answer them all.
+
+        **Do not report security problems here.** See
+        [SECURITY.md](https://github.com/nichtlegacy/MediaWatch/blob/main/SECURITY.md).
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What did you see, and what did you expect instead?
+      placeholder: |
+        The dashboard stopped updating while three streams were running.
+        Expected it to keep updating.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Start a stream on ...
+        2. Press the "Stream 1" button
+        3. ...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: media-server
+    attributes:
+      label: Media server
+      description: The value of `media_server.type` in your `data/config.yaml`.
+      options:
+        - Plex
+        - Jellyfin
+    validations:
+      required: true
+
+  - type: dropdown
+    id: deployment
+    attributes:
+      label: How do you run MediaWatch
+      options:
+        - Docker / docker compose
+        - Unraid
+        - Local (python main.py)
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: MediaWatch version
+      description: >-
+        From the image tag, or `__version__` in `version.py`. If you run from a
+        branch, give the commit hash (`git rev-parse --short HEAD`).
+      placeholder: "2.0.0"
+    validations:
+      required: true
+
+  - type: input
+    id: server-version
+    attributes:
+      label: Media server version
+      description: Plex Media Server or Jellyfin version, plus Tautulli if you use it.
+      placeholder: "Jellyfin 10.10.3"
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant log output
+      description: |
+        The lines around the problem, not the whole file.
+        Docker: `docker logs mediawatch --tail 100`
+
+        ⚠️ **Check the log before pasting it.** MediaWatch logs at DEBUG level.
+        Search the excerpt for `X-Plex-Token`, `token`, `api_key`, `apikey`,
+        `Authorization` and `MediaBrowser` and replace any value you find with
+        `REDACTED`. Usernames, media titles and client IPs may also be in there,
+        so redact what you do not want public.
+      render: text
+    validations:
+      required: false
+
+  - type: textarea
+    id: config
+    attributes:
+      label: Relevant config
+      description: >-
+        The section of `data/config.yaml` that matters here.
+        Never paste `.env`: it is nothing but secrets.
+      render: yaml
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched the existing issues.
+          required: true
+        - label: I removed tokens, API keys and anything else private from the excerpts above.
+          required: true

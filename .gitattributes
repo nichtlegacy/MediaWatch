@@ -1,0 +1,12 @@
+# Normalize all text files to LF in the repository.
+# Without this the working tree carried mixed CRLF/LF, partly within the same
+# file, which made every formatter diff unreadable.
+* text=auto eol=lf
+
+# Shell scripts must stay LF or they break in the container.
+*.sh text eol=lf
+
+# Binary assets - never touch.
+*.png binary
+*.jpg binary
+*.ico binary

@@ -1,5 +1,96 @@
-*.log
-.env
+# MediaWatch .gitignore
+
+# ============================================================================
+# Python
+# ============================================================================
 __pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual Environments
+venv/
+.venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# ============================================================================
+# Environment & Secrets
+# ============================================================================
+# Ignore every env file; only the committed template is tracked.
+# Split setups like .env.prod / .env.docker / .env.jellyfin must never land
+# in git - they carry the Discord token and the media server key.
+.env*
+!.env.example
+
+# ============================================================================
+# Configuration Files (Private)
+# ============================================================================
+# Private config files
+data/config.yaml
+data/config.json.bak
+data/config.json
+data/user_mapping.json
+data/user_mapping.json.bak
 data/dashboard_message_id.json
-/.venv
+data/runtime_state.json
+
+# ============================================================================
+# Logs
+# ============================================================================
+*.log
+logs/
+*.log.*
+
+# ============================================================================
+# IDE & Editor
+# ============================================================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ============================================================================
+# OS
+# ============================================================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Desktop.ini
+
+# ============================================================================
+# Plans & Archives
+# ============================================================================
+# docs/ is published documentation and is tracked. Private working material
+# lives in .planning/ and archive/ - ignore those, not all of docs/.
+.planning/
+archive/
+.pytest_cache/
+
+# ============================================================================
+# Agent Config
+# ============================================================================
+.agent/
+.claude/
+CLAUDE.md
+
+# ============================================================================
+# Documentation site build output
+# ============================================================================
+# mkdocs build writes site/; scripts/build_pages.sh assembles the published
+# site (landing page + docs) in _site/. Both are rebuilt by the Pages workflow.
+site/
+_site/

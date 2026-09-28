@@ -1,0 +1,43 @@
+# Tooling config only - MediaWatch is a bot, not a distributable package,
+# so there is no [project] table and no build backend here.
+
+[tool.ruff]
+# Matches python:3.12-slim in the Dockerfile.
+target-version = "py312"
+# The codebase already writes long lines: p90 = 76, p99 = 106 characters.
+# 100 fits the existing style without rewrapping most of the repo.
+line-length = 100
+extend-exclude = [".venv", "archive", "data"]
+
+[tool.ruff.lint]
+# Deliberately narrow. This is a running codebase, not a greenfield project:
+# the point is to catch new bugs, not to reformat old style.
+#   E4/E7/E9 + F - ruff's default: imports, syntax, pyflakes
+#   B            - bugbear, real runtime traps
+#   ASYNC        - blocking calls inside async defs; this bot froze its
+#                  Discord heartbeat on exactly that (release phase 1.1)
+#   LOG          - logging API misuse
+#   T20          - stray print(); the bot logs, it does not print
+select = ["E4", "E7", "E9", "F", "B", "ASYNC", "LOG", "T20"]
+
+# E501: line length is the formatter's job, and it would flag ~250
+#   pre-existing lines without finding a single bug.
+# ASYNC240: os.path checks on the local filesystem while enumerating ./cogs.
+#   The blocking calls that actually hurt this bot are network calls
+#   (ASYNC210), which stay enabled.
+ignore = ["E501", "ASYNC240"]
+
+[tool.ruff.format]
+# All defaults (double quotes, 4 spaces, magic trailing comma).
+# Kept explicit so a ruff default change does not silently reformat the repo.
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "lf"
+
+[tool.pytest.ini_options]
+# Moved here from pytest.ini so the repository has one tooling config file.
+testpaths = ["tests"]
+# Every test in this suite is async; the mode saves a decorator per test.
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"

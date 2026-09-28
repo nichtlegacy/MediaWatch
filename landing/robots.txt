@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://mediawatch.nichtlegacy.com/sitemap.xml
+Sitemap: https://mediawatch.nichtlegacy.com/docs/sitemap.xml

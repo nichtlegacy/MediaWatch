@@ -1,0 +1,43 @@
+.git
+.github
+.forgejo
+.planning
+.pytest_cache
+.ruff_cache
+.vscode
+.agent
+.claude
+CLAUDE.md
+__pycache__
+archive
+logs
+.venv
+*.pyc
+*.pyo
+*.pyd
+.DS_Store
+
+# Secrets. No .env variant belongs in an image; compose passes them at runtime.
+.env*
+
+# Runtime config and state. A local build would otherwise bake the real
+# config.yaml, user_mapping.json and dashboard_message_id.json into the image
+# and duplicate them into /app/defaults. Only the example is needed.
+data/*
+!data/config.yaml.example
+
+# Test and dev tooling, not used at runtime.
+tests
+pyproject.toml
+requirements-dev.txt
+
+# Documentation site. Published by the Docs workflow, never needed at runtime -
+# and docs/assets/ carries screenshots that would bloat the image.
+docs
+mkdocs.yml
+requirements-docs.txt
+site
+_site
+landing
+overrides
+scripts

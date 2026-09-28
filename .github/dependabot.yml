@@ -1,0 +1,28 @@
+version: 2
+
+updates:
+  # requirements.txt and requirements-dev.txt. Both use compatible ranges, so
+  # only updates that leave the declared range get a PR.
+  - package-ecosystem: pip
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      python:
+        patterns: ["*"]
+
+  # Actions are pinned to commit SHAs; Dependabot reads the "# vX.Y.Z" comment
+  # and rewrites both the SHA and the comment.
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "ci(deps)"
+    groups:
+      actions:
+        patterns: ["*"]
