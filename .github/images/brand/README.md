@@ -10,6 +10,7 @@ name. One gradient runs across it from amber through violet to cyan.
 | `discord-avatar.svg` / `.png` | Full-bleed square with the mark small enough for Discord's round crop. Upload the PNG as the bot's profile picture (Developer Portal → Bot → Icon). The demo uses the SVG as `landing/avatar.svg`. |
 | `logo-1024.png` | The tile as a 1024 px PNG, for places that do not take SVG. |
 | `landing/logo.png` | The tile as a 512 px PNG at `https://mediawatch.nichtlegacy.com/logo.png`. The example config uses it as `dashboard.icon_url` and `footer_icon_url`: Discord embeds do not show SVG. |
+| `social-preview.png` | GitHub's social preview, 1280×640: logo, name, headline and the live dashboard from the landing page demo. Set under Settings → General → Social preview; GitHub has no API for it. |
 | `logo-source-tile.png`, `logo-source-transparent.png` | The AI-generated originals the vector was traced from. Kept for reference only; do not ship them. |
 
 ## How the SVGs were made
