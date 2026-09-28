@@ -18,7 +18,11 @@ COPY . .
 # Only the shipped example is a default. Copying all of /app/data would
 # duplicate a real config into the image on local builds (see .dockerignore).
 # /app/logs is created here because main.py creates it relative to the CWD.
-RUN mkdir -p /app/defaults /app/logs \
+# COPY keeps the checkout's file modes, and a runner that checks out with
+# umask 000 (Forgejo's does) would leave the code writable for the bot. Strip
+# group and other write bits so /app is read-only for it however it was built.
+RUN chmod -R go-w /app \
+    && mkdir -p /app/defaults /app/logs \
     && cp /app/data/config.yaml.example /app/defaults/ \
     && chmod +x entrypoint.sh \
     && groupadd --gid 1000 mediawatch \
