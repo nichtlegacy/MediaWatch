@@ -42,7 +42,7 @@ data/config.yaml.example    the only tracked file in data/
 tests/unit/                 mirrors the package layout
 docs/                       MkDocs Material source; site/ is build output
 landing/                    static landing page, published at the Pages root; docs go to /docs/
-overrides/                  MkDocs theme override: link-preview and analytics tags for the docs
+overrides/                  MkDocs theme override: link-preview tags for the docs
 ```
 
 ## Architecture rules
