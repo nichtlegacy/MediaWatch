@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.0.1](https://github.com/nichtlegacy/MediaWatch/compare/v2.0.0...v2.0.1) (2026-10-06)
+
+
+### Documentation
+
+* **site:** add self-hosted Umami analytics ([#16](https://github.com/nichtlegacy/MediaWatch/issues/16)) ([4112932](https://github.com/nichtlegacy/MediaWatch/commit/411293297a87a676341ba6f4f6d2819caf0d7f18))
+
 ## [2.0.0] - 2026-09-28
 
 The project was called **PlexWatch** and only spoke to Plex. It is now
