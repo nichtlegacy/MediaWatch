@@ -16,6 +16,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
+import version
 from cogs.media_core.shared import maintenance
 from cogs.media_core.shared.env_validation import parse_authorized_users
 from cogs.media_core.shared.formatters import format_watch_time
@@ -74,10 +75,21 @@ class Maintenance(
         except Exception as e:
             self.logger.error(f"Immediate dashboard refresh failed, the next tick retries: {e}")
 
+    def _create_embed(self, title: str, description: str, color: discord.Color) -> discord.Embed:
+        """Create an embed in the style of the other command replies."""
+        embed = discord.Embed(
+            title=title, description=description, color=color, timestamp=discord.utils.utcnow()
+        )
+        embed.set_footer(text=f"{version.__project_name__} v{version.__version__}")
+        if self.bot.user:
+            embed.set_author(name="Maintenance Manager", icon_url=self.bot.user.display_avatar.url)
+            embed.set_thumbnail(url=self.bot.user.display_avatar.url)
+        return embed
+
     def _window_embed(
-        self, title: str, window: maintenance.MaintenanceWindow, color: discord.Color
+        self, title: str, description: str, window: maintenance.MaintenanceWindow
     ) -> discord.Embed:
-        embed = discord.Embed(title=title, color=color)
+        embed = self._create_embed(title, description, discord.Color.gold())
         embed.add_field(name="Reason", value=window.reason or "No reason given", inline=False)
         embed.add_field(name="Since", value=_timestamp(window.started_at), inline=False)
         if window.ends_at is None:
@@ -86,17 +98,17 @@ class Maintenance(
             end_text = _timestamp(window.ends_at)
             if window.overdue():
                 end_text += ", taking longer than planned"
-        embed.add_field(name="Expected end", value=end_text, inline=False)
+        embed.add_field(name="Expected End", value=end_text, inline=False)
         if window.started_by is not None:
-            embed.add_field(name="Started by", value=f"<@{window.started_by}>", inline=False)
+            embed.add_field(name="Started By", value=f"<@{window.started_by}>", inline=False)
         return embed
 
     def _add_dashboard_notes(self, embed: discord.Embed, persisted: bool) -> None:
         if not persisted:
-            embed.add_field(name="⚠️ Not saved", value=NOT_SAVED_WARNING, inline=False)
+            embed.add_field(name="⚠️ Not Saved", value=NOT_SAVED_WARNING, inline=False)
         if self._media_core() is None:
             embed.add_field(
-                name="⚠️ No media core loaded",
+                name="⚠️ No Media Core Loaded",
                 value="The dashboard shows this once the Plex or Jellyfin cog runs again.",
                 inline=False,
             )
@@ -104,14 +116,12 @@ class Maintenance(
     async def _reject_unauthorized(self, interaction: discord.Interaction) -> bool:
         if self._is_authorized(interaction.user.id):
             return False
-        await interaction.followup.send(
-            embed=discord.Embed(
-                title="❌ Not authorized",
-                description="You are not authorized to manage maintenance mode.",
-                color=discord.Color.red(),
-            ),
-            ephemeral=True,
+        embed = self._create_embed(
+            "❌ Not Authorized",
+            "You are not authorized to manage maintenance mode.",
+            discord.Color.red(),
         )
+        await interaction.followup.send(embed=embed, ephemeral=True)
         return True
 
     @app_commands.command(
@@ -136,12 +146,8 @@ class Maintenance(
             try:
                 seconds = maintenance.parse_duration(duration)
             except ValueError as e:
-                await interaction.followup.send(
-                    embed=discord.Embed(
-                        title="❌ Invalid duration", description=str(e), color=discord.Color.red()
-                    ),
-                    ephemeral=True,
-                )
+                embed = self._create_embed("❌ Invalid Duration", str(e), discord.Color.red())
+                await interaction.followup.send(embed=embed, ephemeral=True)
                 return
 
         was_active = maintenance.current() is not None
@@ -157,8 +163,14 @@ class Maintenance(
             window.ends_at,
         )
 
-        title = "🛠️ Maintenance updated" if was_active else "🛠️ Maintenance started"
-        embed = self._window_embed(title, window, discord.Color.blue())
+        if was_active:
+            title, description = "🛠️ Maintenance Updated", "The dashboard shows the new details."
+        else:
+            title, description = (
+                "🛠️ Maintenance Started",
+                "The dashboard announces the maintenance instead of showing the server offline.",
+            )
+        embed = self._window_embed(title, description, window)
         self._add_dashboard_notes(embed, persisted)
         try:
             await interaction.followup.send(embed=embed, ephemeral=True)
@@ -187,24 +199,23 @@ class Maintenance(
 
         window, persisted = maintenance.end()
         if window is None:
-            await interaction.followup.send(
-                embed=discord.Embed(
-                    title="Maintenance mode is not active",
-                    description="Nothing to end.",
-                    color=discord.Color.light_grey(),
-                ),
-                ephemeral=True,
+            embed = self._create_embed(
+                "⚠️ Not Active",
+                "Maintenance mode is not active, so there is nothing to end.\n\n"
+                "Use `/maintenance start` to start it.",
+                discord.Color.orange(),
             )
+            await interaction.followup.send(embed=embed, ephemeral=True)
             return
 
         lasted = format_watch_time(max(0, int(time.time() - window.started_at)))
         self.logger.info(
             "Maintenance ended by %s (%s) after %s", interaction.user, interaction.user.id, lasted
         )
-        embed = discord.Embed(
-            title="✅ Maintenance ended",
-            description=f"Maintenance lasted {lasted}. The dashboard shows the server again.",
-            color=discord.Color.green(),
+        embed = self._create_embed(
+            "✅ Maintenance Ended",
+            f"Maintenance lasted {lasted}. The dashboard shows the server again.",
+            discord.Color.green(),
         )
         self._add_dashboard_notes(embed, persisted)
         try:
@@ -220,13 +231,15 @@ class Maintenance(
 
         window = maintenance.current()
         if window is None:
-            embed = discord.Embed(
-                title="Maintenance mode is not active",
-                description="Start it with `/maintenance start`.",
-                color=discord.Color.light_grey(),
+            embed = self._create_embed(
+                "🛠️ Maintenance Status",
+                "Maintenance mode is **not active**.\n\nUse `/maintenance start` to start it.",
+                discord.Color.blurple(),
             )
         else:
-            embed = self._window_embed("🛠️ Maintenance mode is active", window, discord.Color.blue())
+            embed = self._window_embed(
+                "🛠️ Maintenance Status", "Maintenance mode is **active**.", window
+            )
         await interaction.followup.send(embed=embed, ephemeral=True)
 
 

@@ -11,7 +11,7 @@ and no per-command permissions. An unauthorized call is answered, not silently i
 
 `/mapping` replies with a `❌ Not Authorized` embed instead: `You are not authorized to
 manage user mappings.` (`/mapping list`: `You are not authorized to view user mappings.`)
-`/maintenance` replies with a `❌ Not authorized` embed: `You are not authorized to manage
+`/maintenance` replies with a `❌ Not Authorized` embed: `You are not authorized to manage
 maintenance mode.`
 
 All slash commands are published into `DISCORD_GUILD_ID` only. They do not appear in any
@@ -57,7 +57,7 @@ expected end, and the presence shows `presence.maintenance_text`. See
 during an overrunning maintenance means "30 more minutes". It takes minutes, hours and
 days: `30m`, `45min`, `2h`, `1h30m`, `1d`, or bare minutes like `90`. The field suggests
 common values, and you can type any other. The range is 1 minute to 7 days; anything else
-is answered with `❌ Invalid duration` and changes nothing:
+is answered with `❌ Invalid Duration` and changes nothing:
 
 ```text
 Invalid duration "soon". Use minutes, hours or days like 30m, 2h, 1h30m or 1d.
@@ -72,7 +72,7 @@ maintenance embed and adds "taking longer than planned" instead of flipping to o
 All replies are ephemeral. Start and end re-render the dashboard right away, not on the
 next one-minute tick, and the presence follows with it. Maintenance is saved to
 `data/runtime_state.json`, so it survives a crash or a restart of the bot or the host.
-When that file cannot be written, the reply adds a `⚠️ Not saved` field: maintenance mode
+When that file cannot be written, the reply adds a `⚠️ Not Saved` field: maintenance mode
 still works, but only until the bot restarts.
 
 ### `/reload_config`

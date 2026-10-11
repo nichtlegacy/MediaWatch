@@ -5,10 +5,12 @@ import discord
 import pytest
 from discord.ext import commands
 
+import version
 from cogs.maintenance import Maintenance
 from cogs.media_core.shared import maintenance, runtime_state
 
 AUTHORIZED = 123
+AVATAR = "https://cdn.example/avatar.png"
 UNAUTHORIZED = 999
 
 
@@ -34,7 +36,10 @@ def _interaction(user_id=AUTHORIZED, followup_error=None):
 
 def _cog(monkeypatch, core=None):
     monkeypatch.setenv("DISCORD_AUTHORIZED_USERS", str(AUTHORIZED))
-    bot = SimpleNamespace(get_cog=lambda name: core if name == "PlexCore" else None)
+    bot = SimpleNamespace(
+        get_cog=lambda name: core if name == "PlexCore" else None,
+        user=SimpleNamespace(display_avatar=SimpleNamespace(url=AVATAR)),
+    )
     return Maintenance(bot)
 
 
@@ -49,6 +54,21 @@ def test_maintenance_registers_as_a_group_with_three_subcommands():
 
 
 @pytest.mark.asyncio
+async def test_replies_use_the_style_of_the_other_commands(monkeypatch):
+    cog = _cog(monkeypatch, _core())
+    interaction = _interaction()
+
+    await cog.maintenance_start.callback(cog, interaction, reason="Disk swap")
+
+    embed = interaction.followup.embeds[0]
+    assert embed.author.name == "Maintenance Manager"
+    assert embed.author.icon_url == AVATAR
+    assert embed.thumbnail.url == AVATAR
+    assert embed.footer.text == f"{version.__project_name__} v{version.__version__}"
+    assert embed.timestamp is not None
+
+
+@pytest.mark.asyncio
 @pytest.mark.parametrize("command", ["maintenance_start", "maintenance_end", "maintenance_status"])
 async def test_unauthorized_users_cannot_touch_maintenance(monkeypatch, command):
     maintenance.start(started_by=AUTHORIZED, reason="Disk swap")
@@ -58,7 +78,7 @@ async def test_unauthorized_users_cannot_touch_maintenance(monkeypatch, command)
 
     await getattr(cog, command).callback(cog, interaction)
 
-    assert interaction.followup.embeds[0].title == "❌ Not authorized"
+    assert interaction.followup.embeds[0].title == "❌ Not Authorized"
     assert maintenance.current().reason == "Disk swap"
     core.update_dashboard.assert_not_awaited()
 
@@ -75,7 +95,7 @@ async def test_start_activates_maintenance_and_refreshes_the_dashboard_at_once(m
     assert window.reason == "Disk swap"
     assert window.started_by == AUTHORIZED
     assert window.ends_at - window.started_at == pytest.approx(5400, abs=5)
-    assert interaction.followup.embeds[0].title == "🛠️ Maintenance started"
+    assert interaction.followup.embeds[0].title == "🛠️ Maintenance Started"
     core.update_dashboard.assert_awaited_once()
 
 
@@ -87,7 +107,7 @@ async def test_start_again_reports_an_update(monkeypatch):
 
     await cog.maintenance_start.callback(cog, interaction, duration="30m")
 
-    assert interaction.followup.embeds[0].title == "🛠️ Maintenance updated"
+    assert interaction.followup.embeds[0].title == "🛠️ Maintenance Updated"
     assert maintenance.current().reason == "Disk swap"
 
 
@@ -99,7 +119,7 @@ async def test_an_invalid_duration_changes_nothing(monkeypatch):
 
     await cog.maintenance_start.callback(cog, interaction, reason="x", duration="soon")
 
-    assert interaction.followup.embeds[0].title == "❌ Invalid duration"
+    assert interaction.followup.embeds[0].title == "❌ Invalid Duration"
     assert "30m, 2h, 1h30m or 1d" in interaction.followup.embeds[0].description
     assert maintenance.current() is None
     core.update_dashboard.assert_not_awaited()
@@ -126,7 +146,7 @@ async def test_a_failing_refresh_does_not_fail_the_command(monkeypatch):
 
     await cog.maintenance_start.callback(cog, interaction)
 
-    assert interaction.followup.embeds[0].title == "🛠️ Maintenance started"
+    assert interaction.followup.embeds[0].title == "🛠️ Maintenance Started"
 
 
 @pytest.mark.asyncio
@@ -141,8 +161,8 @@ async def test_start_warns_when_it_cannot_be_saved_or_shown(monkeypatch):
     await cog.maintenance_start.callback(cog, interaction)
 
     names = [f.name for f in interaction.followup.embeds[0].fields]
-    assert "⚠️ Not saved" in names
-    assert "⚠️ No media core loaded" in names
+    assert "⚠️ Not Saved" in names
+    assert "⚠️ No Media Core Loaded" in names
     assert maintenance.current() is not None
 
 
@@ -155,7 +175,7 @@ async def test_end_clears_maintenance_and_refreshes(monkeypatch):
 
     await cog.maintenance_end.callback(cog, interaction)
 
-    assert interaction.followup.embeds[0].title == "✅ Maintenance ended"
+    assert interaction.followup.embeds[0].title == "✅ Maintenance Ended"
     assert maintenance.current() is None
     core.update_dashboard.assert_awaited_once()
 
@@ -168,7 +188,7 @@ async def test_end_without_maintenance_says_so(monkeypatch):
 
     await cog.maintenance_end.callback(cog, interaction)
 
-    assert interaction.followup.embeds[0].title == "Maintenance mode is not active"
+    assert interaction.followup.embeds[0].title == "⚠️ Not Active"
     core.update_dashboard.assert_not_awaited()
 
 
@@ -177,14 +197,15 @@ async def test_status_shows_the_running_window(monkeypatch):
     cog = _cog(monkeypatch, _core())
     interaction = _interaction()
     await cog.maintenance_status.callback(cog, interaction)
-    assert interaction.followup.embeds[0].title == "Maintenance mode is not active"
+    assert "**not active**" in interaction.followup.embeds[0].description
 
     maintenance.start(started_by=AUTHORIZED, reason="Disk swap")
     interaction = _interaction()
     await cog.maintenance_status.callback(cog, interaction)
 
     embed = interaction.followup.embeds[0]
-    assert embed.title == "🛠️ Maintenance mode is active"
+    assert embed.title == "🛠️ Maintenance Status"
+    assert embed.description == "Maintenance mode is **active**."
     assert embed.fields[0].value == "Disk swap"
     assert embed.fields[-1].value == f"<@{AUTHORIZED}>"
 
