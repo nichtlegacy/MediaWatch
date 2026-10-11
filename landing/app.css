@@ -251,7 +251,7 @@ h3 { font-size: 18px; line-height: 1.3; letter-spacing: -0.022em; font-weight: 6
 [data-tone="online"] { --tone: #2ecc71; }
 [data-tone="offline"] { --tone: #e74c3c; }
 [data-tone="auth"] { --tone: #e67e22; }
-[data-tone="maintenance"] { --tone: #3498db; }
+[data-tone="maintenance"] { --tone: #f1c40f; }
 
 /* Concentric: 3px of padding around 16px-radius options gives the 19px outer. */
 .seg {
@@ -553,7 +553,6 @@ img.dc-avatar { display: block; border-radius: 50%; }
 .embed-title a { color: var(--d-link); text-decoration: none; }
 .embed-title a:hover { text-decoration: underline; }
 .embed-desc { font-size: 14px; line-height: 18px; white-space: pre-line; }
-.dquote { margin: 0; padding-left: 12px; border-left: 4px solid #4e5058; border-radius: 2px; }
 .embed-thumb {
   grid-column: 2 !important; grid-row: 1 / 8;
   justify-self: end;

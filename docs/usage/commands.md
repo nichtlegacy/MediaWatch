@@ -67,7 +67,7 @@ The duration must be between 1 minute and 7 days.
 Without a duration, maintenance runs until `/maintenance end`. With one, it ends on its
 own once the announced end has passed **and** the server answers again (turn that off
 with `maintenance.auto_end: false`). An overrun while the server is still down keeps the
-maintenance embed and adds "taking longer than planned" instead of flipping to offline.
+maintenance embed and adds "⚠️ Taking longer than planned" instead of flipping to offline.
 
 All replies are ephemeral. Start and end re-render the dashboard right away, not on the
 next one-minute tick, and the presence follows with it. Maintenance is saved to

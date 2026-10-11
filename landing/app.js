@@ -60,11 +60,12 @@ const discordTime = (unix, style) => {
     const span = minutes < 60 ? `${minutes} minute${minutes === 1 ? '' : 's'}` : hours === 1 ? 'an hour' : `${hours} hours`;
     return delta > 0 ? `in ${span}` : `${span} ago`;
   }
+  if (style === 't') return clock(date);
   return `${date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })} ${clock(date)}`;
 };
 
 // The slice of Discord markdown the bot uses: code blocks (plain and ansi),
-// inline code, bold, italic, links, timestamps and "> " quotes.
+// inline code, bold, italic, links and timestamps.
 // The bot's progress bars are ▓ for done and ░ for to go. Shade glyphs blur
 // into the same grey at normal pixel density, so each run is repainted with
 // the pixel pattern Discord shows (see .bar-on/.bar-off). The glyphs stay in
@@ -86,11 +87,10 @@ const md = (text) => {
     return keep(`<pre><code>${bars(code)}</code></pre>`);
   });
   s = s.replace(/`([^`\n]+)`/g, (_, c) => keep(`<code class="icode">${bars(c)}</code>`));
-  s = s.replace(/&lt;t:(\d+):([fR])&gt;/g, (_, t, st) => keep(`<span class="dts">${discordTime(+t, st)}</span>`));
+  s = s.replace(/&lt;t:(\d+):([fRt])&gt;/g, (_, t, st) => keep(`<span class="dts">${discordTime(+t, st)}</span>`));
   s = s.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" rel="noopener" target="_blank">$1</a>');
   s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
   s = s.replace(/\*([^*]+)\*/g, '<em>$1</em>');
-  s = s.replace(/^&gt; (.*)$/gm, '<blockquote class="dquote">$1</blockquote>');
   // Consecutive "1. " lines become a real list, as Discord renders them.
   s = s.replace(/(?:^|\n)((?:\d+\. .*(?:\n|$))+)/g, (block, items) => {
     const lines = items.trim().split('\n');
@@ -355,9 +355,12 @@ const dashboardEmbed = (platform, server, streams, opts = {}) => {
   if (server === 'maintenance') {
     // As /maintenance start reason:… duration:1h30m leaves it, twelve minutes in.
     const since = Math.floor(state.maintenanceSince / 1000);
-    return { ...base, color: COLOR.blue, title: 'Server is under maintenance 🛠️', desc: '> Swapping a disk and updating the media server', fields: [
-      { name: 'Maintenance:', value: `**Since:** <t:${since}:f> (<t:${since}:R>)\n**Expected end:** <t:${since + 5400}:f> (<t:${since + 5400}:R>)` },
-      { name: 'Server:', value: '🔴 Not reachable' },
+    const ends = since + 5400;
+    return { ...base, color: COLOR.gold, title: 'Server is under maintenance 🛠️', fields: [
+      { name: 'Reason 📝', value: '```Swapping a disk and updating the media server```' },
+      { name: 'Since 🕒', value: `<t:${since}:t>\n<t:${since}:R>`, inline: true },
+      { name: 'Expected End ⏳', value: `<t:${ends}:t>\n<t:${ends}:R>`, inline: true },
+      { name: 'Server 📡', value: '🔴 Not reachable', inline: true },
     ] };
   }
   if (server === 'offline') {

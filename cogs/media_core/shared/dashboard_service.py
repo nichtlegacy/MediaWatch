@@ -27,6 +27,16 @@ CREDENTIAL_VARS = {
 MAX_LIBRARY_FIELDS = 15
 
 
+def _short_timestamp(value: float) -> str:
+    """Time over countdown, narrow enough for a third of the embed without wrapping.
+
+    The date is left out on purpose: the countdown says how far away it is, and
+    Discord shows the full date when you hover a timestamp.
+    """
+    moment = datetime.fromtimestamp(value, tz=timezone.utc)
+    return f"{discord.utils.format_dt(moment, style='t')}\n{discord.utils.format_dt(moment, style='R')}"
+
+
 def calculate_total_download_size(downloads: List[Dict[str, Any]]) -> str:
     """Sum the sizes of the given downloads into a human-readable string.
 
@@ -89,9 +99,9 @@ class DashboardService:
         # a token mid-maintenance is expected, not news.
         if maintenance:
             title = "Server is under maintenance :tools:"
-            # Statuspage's colour for maintenance, and the one state colour the
-            # dashboard does not use yet: green, red and orange are taken.
-            color = discord.Color.blue()
+            # Yellow like a construction sign, from the same palette as the
+            # green, orange and red of the other states.
+            color = discord.Color.gold()
             thumbnail_url = self.config.get("maintenance", {}).get("thumbnail_url") or thumbnail_url
         elif auth_failed:
             title = "Server rejected the credentials! :no_entry:"
@@ -142,39 +152,35 @@ class DashboardService:
     ) -> None:
         """Say what is happening and until when, instead of "Offline".
 
-        The "R" timestamps count down in the client, so the embed stays current
-        between ticks without an edit.
+        Laid out like the online dashboard: the reason in a code block, then one
+        row of inline fields. The "R" timestamps count down in the client, so the
+        embed stays current between ticks without an edit.
         """
         if maintenance.reason:
-            embed.description = f"> {maintenance.reason}"
+            # A backtick in the reason would close the code block early.
+            reason = maintenance.reason.replace("`", "'")
+            embed.add_field(name="Reason 📝", value=f"```{reason}```", inline=False)
 
-        started = datetime.fromtimestamp(maintenance.started_at, tz=timezone.utc)
-        lines = [
-            f"**Since:** {discord.utils.format_dt(started, style='f')} "
-            f"({discord.utils.format_dt(started, style='R')})"
-        ]
+        embed.add_field(
+            name="Since 🕒", value=_short_timestamp(maintenance.started_at), inline=True
+        )
         if maintenance.ends_at is None:
-            lines.append("**Expected end:** Not announced")
+            end_text = "Not announced"
         else:
-            ends = datetime.fromtimestamp(maintenance.ends_at, tz=timezone.utc)
-            end_text = (
-                f"{discord.utils.format_dt(ends, style='f')} "
-                f"({discord.utils.format_dt(ends, style='R')})"
-            )
+            end_text = _short_timestamp(maintenance.ends_at)
             if maintenance.overdue():
-                end_text += ", taking longer than planned"
-            lines.append(f"**Expected end:** {end_text}")
-        embed.add_field(name="Maintenance:", value="\n".join(lines), inline=False)
+                end_text += "\n⚠️ Taking longer than planned"
+        embed.add_field(name="Expected End ⏳", value=end_text, inline=True)
 
         # Polling goes on during maintenance, so this shows the moment the
         # server is back - the thing whoever does the work is waiting for.
         if info.get("auth_failed"):
-            server_text = "🟠 Reachable, but it rejects the credentials"
+            server_text = "🟠 Rejects the credentials"
         elif info["status"] == "🟢 Online" and info.get("reachable", True):
             server_text = "🟢 Reachable"
         else:
             server_text = "🔴 Not reachable"
-        embed.add_field(name="Server:", value=server_text, inline=False)
+        embed.add_field(name="Server 📡", value=server_text, inline=True)
 
         # Who is still watching before the server goes down. No empty-state
         # line: "no streams" is the expected state here.

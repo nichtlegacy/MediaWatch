@@ -11,7 +11,7 @@ name. One gradient runs across it from amber through violet to cyan.
 | `logo-1024.png` | The tile as a 1024 px PNG, for places that do not take SVG. |
 | `landing/logo.png` | The tile as a 512 px PNG at `https://mediawatch.nichtlegacy.com/logo.png`. The example config uses it as `dashboard.icon_url` and `footer_icon_url`: Discord embeds do not show SVG. |
 | `social-preview.png` | GitHub's social preview, 1280×640: logo, name, headline and the live dashboard from the landing page demo. Set under Settings → General → Social preview; GitHub has no API for it. |
-| `logo-maintenance.svg`, `landing/logo-maintenance.png` | The tile with a blue wrench badge, for the dashboard thumbnail during `/maintenance`. The 512 px PNG is at `https://mediawatch.nichtlegacy.com/logo-maintenance.png`, which the example config uses as `maintenance.thumbnail_url`. The badge is the maintenance embed colour, `#3498db`. |
+| `logo-maintenance.svg`, `landing/logo-maintenance.png` | The tile with a yellow wrench badge, for the dashboard thumbnail during `/maintenance`. The 512 px PNG is at `https://mediawatch.nichtlegacy.com/logo-maintenance.png`, which the example config uses as `maintenance.thumbnail_url`. The badge is the maintenance embed colour, `#f1c40f` (`discord.Color.gold()`), with a dark wrench for contrast. |
 | `logo-source-tile.png`, `logo-source-transparent.png` | The AI-generated originals the vector was traced from. Kept for reference only; do not ship them. |
 
 ## How the SVGs were made

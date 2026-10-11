@@ -101,20 +101,23 @@ is not a transient failure. See
 
 ## During maintenance
 
-Title **"Server is under maintenance 🛠️"**, blue, started with
+Title **"Server is under maintenance 🛠️"**, yellow, started with
 [`/maintenance start`](commands.md#maintenance). It takes precedence over every other
 state: a server that is down or rejects the token during maintenance is expected, so the
 embed does not switch to red or orange. Libraries, downloads and Uptime Kuma history are
 dropped; what remains is:
 
-- The reason as a quote under the title, if you gave one.
-- `Maintenance:` with **Since** and **Expected end**, both as Discord timestamps that
-  count down live in every reader's own timezone. Without a duration the end reads `Not
-  announced`; once it has passed, `, taking longer than planned` is appended.
-- `Server:` whether the media server answers right now: `🟢 Reachable`,
-  `🔴 Not reachable` or `🟠 Reachable, but it rejects the credentials`. The bot keeps
-  checking the server during maintenance, so this flips the moment it is back. It ignores
-  `server.offline_threshold` and shows the actual answer.
+- `Reason 📝`: the reason in a code block, if you gave one.
+- A row of three fields:
+    - `Since 🕒` and `Expected End ⏳`: the time, with a countdown below. Both are
+      Discord timestamps, so they count live in every reader's own timezone; hover one
+      for the full date. Without a
+      duration the end reads `Not announced`; once it has passed,
+      `⚠️ Taking longer than planned` is added.
+    - `Server 📡`: whether the media server answers right now: `🟢 Reachable`,
+      `🔴 Not reachable` or `🟠 Rejects the credentials`. The bot keeps checking the
+      server during maintenance, so this flips the moment it is back. It ignores
+      `server.offline_threshold` and shows the actual answer.
 - The stream list, only while someone is still watching. The stream buttons stay, so you
   can stop a stream before you take the server down.
 

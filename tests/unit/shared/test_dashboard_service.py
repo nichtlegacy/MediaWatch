@@ -368,9 +368,27 @@ async def test_maintenance_replaces_every_other_dashboard_state(status, auth_fai
     )
 
     assert embed.title == "Server is under maintenance :tools:"
-    assert embed.color == discord.Color.blue()
-    assert embed.description == "> Disk swap"
-    assert [f.name for f in embed.fields] == ["Maintenance:", "Server:"]
+    assert embed.color == discord.Color.gold()
+    assert embed.description is None
+    assert [(f.name, f.inline) for f in embed.fields] == [
+        ("Reason 📝", False),
+        ("Since 🕒", True),
+        ("Expected End ⏳", True),
+        ("Server 📡", True),
+    ]
+    assert embed.fields[0].value == "```Disk swap```"
+
+
+@pytest.mark.asyncio
+async def test_maintenance_embed_without_reason_and_with_backticks():
+    plain = MaintenanceWindow(started_at=time.time())
+    ticked = MaintenanceWindow(started_at=time.time(), reason="run `fsck` first")
+
+    plain_embed = await _service().create_dashboard_embed(_maintenance_info(plain))
+    ticked_embed = await _service().create_dashboard_embed(_maintenance_info(ticked))
+
+    assert "Reason 📝" not in [f.name for f in plain_embed.fields]
+    assert ticked_embed.fields[0].value == "```run 'fsck' first```"
 
 
 @pytest.mark.asyncio
@@ -381,17 +399,16 @@ async def test_maintenance_embed_announces_the_end_and_admits_an_overrun():
     open_ended = MaintenanceWindow(started_at=now - 600)
 
     def field(embed):
-        return next(f.value for f in embed.fields if f.name == "Maintenance:")
+        return next(f.value for f in embed.fields if f.name == "Expected End ⏳")
 
     on_time_text = field(await _service().create_dashboard_embed(_maintenance_info(on_time)))
     overrun_text = field(await _service().create_dashboard_embed(_maintenance_info(overrun)))
     open_text = field(await _service().create_dashboard_embed(_maintenance_info(open_ended)))
 
     assert f"<t:{int(now + 600)}:R>" in on_time_text
-    assert "taking longer than planned" not in on_time_text
-    assert "taking longer than planned" in overrun_text
-    assert "**Expected end:** Not announced" in open_text
-    assert f"<t:{int(now - 600)}:R>" in open_text
+    assert "Taking longer than planned" not in on_time_text
+    assert "⚠️ Taking longer than planned" in overrun_text
+    assert open_text == "Not announced"
 
 
 @pytest.mark.asyncio
@@ -404,7 +421,7 @@ async def test_maintenance_embed_announces_the_end_and_admits_an_overrun():
         ({"status": "🔴 Offline", "reachable": False}, "🔴 Not reachable"),
         (
             {"status": "🔴 Offline", "reachable": True, "auth_failed": True},
-            "🟠 Reachable, but it rejects the credentials",
+            "🟠 Rejects the credentials",
         ),
     ],
 )
@@ -413,7 +430,7 @@ async def test_maintenance_embed_shows_whether_the_server_answers(overrides, exp
 
     embed = await _service().create_dashboard_embed(_maintenance_info(window, **overrides))
 
-    assert next(f.value for f in embed.fields if f.name == "Server:") == expected
+    assert next(f.value for f in embed.fields if f.name == "Server 📡") == expected
 
 
 @pytest.mark.asyncio
