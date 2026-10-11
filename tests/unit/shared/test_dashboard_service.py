@@ -1,12 +1,15 @@
+import time
 from datetime import datetime, timezone
 from types import SimpleNamespace
 
+import discord
 import pytest
 
 from cogs.media_core.shared.dashboard_service import (
     DashboardService,
     calculate_total_download_size,
 )
+from cogs.media_core.shared.maintenance import MaintenanceWindow
 
 
 CONFIG = {
@@ -337,3 +340,110 @@ async def test_dashboard_embed_says_when_downloads_had_to_be_dropped():
 
     header = next(f.name for f in embed.fields if "current Download" in (f.name or ""))
     assert "showing 4 of 6" in header
+
+
+def _maintenance_info(window, **overrides):
+    info = {
+        "status": "🔴 Offline",
+        "auth_failed": False,
+        "reachable": False,
+        "uptime": "Offline",
+        "library_stats": {},
+        "active_users": [],
+        "maintenance": window,
+    }
+    info.update(overrides)
+    return info
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("status", "auth_failed"), [("🔴 Offline", False), ("🔴 Offline", True), ("🟢 Online", False)]
+)
+async def test_maintenance_replaces_every_other_dashboard_state(status, auth_failed):
+    window = MaintenanceWindow(started_at=time.time() - 600, reason="Disk swap")
+
+    embed = await _service().create_dashboard_embed(
+        _maintenance_info(window, status=status, auth_failed=auth_failed)
+    )
+
+    assert embed.title == "Server is under maintenance :tools:"
+    assert embed.color == discord.Color.blue()
+    assert embed.description == "> Disk swap"
+    assert [f.name for f in embed.fields] == ["Maintenance:", "Server:"]
+
+
+@pytest.mark.asyncio
+async def test_maintenance_embed_announces_the_end_and_admits_an_overrun():
+    now = time.time()
+    on_time = MaintenanceWindow(started_at=now - 600, ends_at=now + 600)
+    overrun = MaintenanceWindow(started_at=now - 600, ends_at=now - 60)
+    open_ended = MaintenanceWindow(started_at=now - 600)
+
+    def field(embed):
+        return next(f.value for f in embed.fields if f.name == "Maintenance:")
+
+    on_time_text = field(await _service().create_dashboard_embed(_maintenance_info(on_time)))
+    overrun_text = field(await _service().create_dashboard_embed(_maintenance_info(overrun)))
+    open_text = field(await _service().create_dashboard_embed(_maintenance_info(open_ended)))
+
+    assert f"<t:{int(now + 600)}:R>" in on_time_text
+    assert "taking longer than planned" not in on_time_text
+    assert "taking longer than planned" in overrun_text
+    assert "**Expected end:** Not announced" in open_text
+    assert f"<t:{int(now - 600)}:R>" in open_text
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("overrides", "expected"),
+    [
+        ({"status": "🟢 Online", "reachable": True}, "🟢 Reachable"),
+        # Within server.offline_threshold: reported online, but not answering.
+        ({"status": "🟢 Online", "reachable": False}, "🔴 Not reachable"),
+        ({"status": "🔴 Offline", "reachable": False}, "🔴 Not reachable"),
+        (
+            {"status": "🔴 Offline", "reachable": True, "auth_failed": True},
+            "🟠 Reachable, but it rejects the credentials",
+        ),
+    ],
+)
+async def test_maintenance_embed_shows_whether_the_server_answers(overrides, expected):
+    window = MaintenanceWindow(started_at=time.time())
+
+    embed = await _service().create_dashboard_embed(_maintenance_info(window, **overrides))
+
+    assert next(f.value for f in embed.fields if f.name == "Server:") == expected
+
+
+@pytest.mark.asyncio
+async def test_maintenance_embed_lists_who_is_still_watching():
+    window = MaintenanceWindow(started_at=time.time())
+    info = _maintenance_info(
+        window, status="🟢 Online", reachable=True, active_users=["alice", "bob"]
+    )
+
+    embed = await _service().create_dashboard_embed(info)
+
+    assert embed.fields[-1].name == "2 current Streams:"
+
+
+@pytest.mark.asyncio
+async def test_maintenance_thumbnail_falls_back_to_the_dashboard_icon():
+    window = MaintenanceWindow(started_at=time.time())
+    config = {
+        "dashboard": {
+            "name": "D",
+            "icon_url": "https://example.com/icon.png",
+            "footer_icon_url": "",
+        },
+        "plex": {"sections": {}, "show_all": True},
+        "maintenance": {"thumbnail_url": ""},
+    }
+
+    default = await _service(config=config).create_dashboard_embed(_maintenance_info(window))
+    config["maintenance"]["thumbnail_url"] = "https://example.com/wrench.png"
+    custom = await _service(config=config).create_dashboard_embed(_maintenance_info(window))
+
+    assert default.thumbnail.url == "https://example.com/icon.png"
+    assert custom.thumbnail.url == "https://example.com/wrench.png"

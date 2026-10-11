@@ -322,6 +322,18 @@ def load_config(config_file: str, config_file_json: str = "") -> Dict[str, Any]:
             "offline_text": "🔴 Server Offline!",
             "auth_failed_text": "",
             "stream_text": "{count} active Stream{s} 🟢",
+            # While /maintenance is active. An empty text falls back to
+            # "🛠️ Maintenance", never to offline_text.
+            "maintenance_text": "🛠️ Maintenance",
+            "maintenance_status": "idle",
+        },
+        # /maintenance: the dashboard announces the work instead of "Offline".
+        "maintenance": {
+            # "" keeps dashboard.icon_url as the thumbnail.
+            "thumbnail_url": "",
+            # End on its own once the announced end has passed and the server
+            # answers again. Without a duration it only ends on /maintenance end.
+            "auto_end": True,
         },
         "display": {
             # Applies to the dashboard and the presence alike.

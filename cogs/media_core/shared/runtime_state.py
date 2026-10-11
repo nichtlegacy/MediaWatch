@@ -20,6 +20,7 @@ _SUPPORTED_PLATFORMS = {"plex", "jellyfin"}
 # Bot-level state that is not tied to a media platform
 _BOT_SECTION = "bot"
 _GLOBAL_COMMANDS_CLEARED_KEY = "global_commands_cleared"
+_MAINTENANCE_KEY = "maintenance"
 _SUPPORTED_SECTIONS = _SUPPORTED_PLATFORMS | {_BOT_SECTION}
 # At most one last_seen write per platform and minute. It has to stay well below
 # server.offline_threshold (default 300 s): the gap a restart may cost before the
@@ -57,7 +58,7 @@ def load_runtime_state() -> Dict[str, Dict[str, Any]]:
     }
 
 
-def save_runtime_state(state: Dict[str, Dict[str, Any]]) -> None:
+def save_runtime_state(state: Dict[str, Dict[str, Any]]) -> bool:
     """Persist runtime state to disk.
 
     Runtime state is a convenience cache, never something the bot needs to run:
@@ -66,11 +67,15 @@ def save_runtime_state(state: Dict[str, Dict[str, Any]]) -> None:
     override on top of a root-owned 1.x volume - must therefore not be able to
     take the bot down. This is called from `setup_hook`, where an escaping
     `PermissionError` leaves the bot permanently unable to start.
+
+    Returns whether the write succeeded, for callers that have to tell the user.
     """
     try:
         write_json_atomic(get_runtime_state_path(), state, indent=2, ensure_ascii=False)
     except OSError as exc:
         logger.error("Failed to persist runtime state to %s: %s", get_runtime_state_path(), exc)
+        return False
+    return True
 
 
 def load_online_since(platform: str, max_gap_seconds: Optional[float] = None) -> Optional[float]:
@@ -182,3 +187,19 @@ def mark_global_commands_cleared() -> None:
     state = load_runtime_state()
     state.setdefault(_BOT_SECTION, {})[_GLOBAL_COMMANDS_CLEARED_KEY] = True
     save_runtime_state(state)
+
+
+def load_maintenance() -> Optional[Any]:
+    """Return the persisted maintenance window payload, unvalidated."""
+    return load_runtime_state().get(_BOT_SECTION, {}).get(_MAINTENANCE_KEY)
+
+
+def persist_maintenance(payload: Optional[Dict[str, Any]]) -> bool:
+    """Store the maintenance window, or drop it for None. Returns whether it was written."""
+    state = load_runtime_state()
+    bot_state = state.setdefault(_BOT_SECTION, {})
+    if payload is None:
+        bot_state.pop(_MAINTENANCE_KEY, None)
+    else:
+        bot_state[_MAINTENANCE_KEY] = payload
+    return save_runtime_state(state)

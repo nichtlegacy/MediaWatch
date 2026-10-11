@@ -110,6 +110,26 @@ presence:
   auth_failed_text: ""
   # {count} is the stream count, {s} an "s" when it is not exactly one.
   stream_text: "{count} active Stream{s} 🟢"
+  # While /maintenance is active. Empty falls back to "🛠️ Maintenance".
+  maintenance_text: "🛠️ Maintenance"
+  maintenance_status: "idle"
+
+# ==============================================================================
+# MAINTENANCE MODE - started and ended with /maintenance start|end
+# ==============================================================================
+# While it is active, the dashboard says the server is under maintenance (with
+# the reason and the expected end) instead of turning red, and the presence
+# shows presence.maintenance_text. The bot keeps checking the server, so the
+# embed shows when it is reachable again.
+# - thumbnail_url: Thumbnail during maintenance. "" keeps dashboard.icon_url
+#   (the default when the key is left out). The URL below is the MediaWatch
+#   logo with a wrench.
+# - auto_end: true = end automatically once the announced end has passed AND
+#   the server answers again (default). A maintenance started without a duration
+#   only ends with /maintenance end. false = always end it by hand.
+maintenance:
+  thumbnail_url: "https://mediawatch.nichtlegacy.com/logo-maintenance.png"
+  auto_end: true
 
 # ==============================================================================
 # DISPLAY - formatting that applies to the dashboard and the presence alike

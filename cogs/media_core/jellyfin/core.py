@@ -21,6 +21,7 @@ from .jellyfin_service import JellyfinMediaService
 from ..shared.dashboard_service import DashboardService
 from ..shared.env_validation import parse_authorized_users
 from ..shared.formatters import format_stream_summary
+from ..shared.maintenance import resolve as resolve_maintenance
 from ..shared.presence import build_presence
 
 # Import config utilities from shared
@@ -44,6 +45,11 @@ logger = logging.getLogger("mediawatch_bot.media_core.jellyfin")
 
 class JellyfinCore(commands.Cog):
     """Core Jellyfin Media Server integration and dashboard management."""
+
+    # Whether the presence last published showed maintenance; None until the
+    # first update_status. Lets a dashboard tick catch a start, end or
+    # auto-end without waiting up to five minutes for the presence loop.
+    _presence_in_maintenance: Optional[bool] = None
 
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
@@ -107,6 +113,9 @@ class JellyfinCore(commands.Cog):
         self.stream_details_view = StreamDetailsView(self)
 
         self._shutdown_started = False
+
+        # /maintenance runs update_dashboard outside the loop; see update_dashboard.
+        self._dashboard_lock = asyncio.Lock()
 
     def _get_session_cache_key(self, session: Dict[str, Any]) -> Optional[str]:
         """Return the stable cache key for a Jellyfin session dictionary."""
@@ -183,6 +192,11 @@ class JellyfinCore(commands.Cog):
             "library_stats": library_stats_dict,
             "active_users": [self._format_stream_legacy(s) for s in status.active_streams],
             "current_streams": status.active_streams,
+            "reachable": status.reachable,
+            "maintenance": resolve_maintenance(
+                server_healthy=status.is_online and status.reachable and not status.auth_failed,
+                auto_end=self.config.get("maintenance", {}).get("auto_end", True),
+            ),
         }
 
     def _format_stream_legacy(self, stream) -> str:
@@ -194,6 +208,7 @@ class JellyfinCore(commands.Cog):
         """Update bot presence with Jellyfin status and stream count."""
         try:
             info = await self.get_server_info()
+            in_maintenance = info.get("maintenance") is not None
             presence = build_presence(
                 self.config["presence"],
                 is_online=info["status"] == "🟢 Online",
@@ -202,12 +217,17 @@ class JellyfinCore(commands.Cog):
                 library_stats=info["library_stats"],
                 separator=self.config["display"]["thousands_separator"],
                 episode_label=self.config["display"]["episode_label"],
+                in_maintenance=in_maintenance,
             )
             if presence is None:
+                self._presence_in_maintenance = in_maintenance
                 return
 
             activity, status = presence
             await self.bot.change_presence(activity=activity, status=status)
+            # Only once it went out: after a failed update (gateway down) the
+            # next dashboard tick sees the mismatch and tries again.
+            self._presence_in_maintenance = in_maintenance
             self.logger.info(f"Status updated: {activity.name} ({status})")
         except Exception as e:
             self.logger.error(f"Error updating status: {e}")
@@ -219,7 +239,16 @@ class JellyfinCore(commands.Cog):
 
     @tasks.loop(minutes=1)
     async def update_dashboard(self) -> None:
-        """Update Discord dashboard with Jellyfin, SABnzbd, and Uptime data."""
+        """Update Discord dashboard with Jellyfin, SABnzbd, and Uptime data.
+
+        /maintenance also calls this directly, so it is serialized: a tick that
+        read the state before the change must not overwrite the newer embed
+        after it, and two runs must not both recreate a deleted message.
+        """
+        async with self._dashboard_lock:
+            await self._refresh_dashboard()
+
+    async def _refresh_dashboard(self) -> None:
         channel = await self._resolve_channel()
         if not channel:
             self.logger.warning(f"Dashboard channel {self.CHANNEL_ID} could not be resolved")
@@ -236,7 +265,12 @@ class JellyfinCore(commands.Cog):
             # Uptime Kuma history only appears in the offline embed, so skip the
             # fetch (a socket.io login per call) while the server is online.
             uptime_cog = self.bot.get_cog("Uptime")
-            if uptime_cog and info["status"] != "🟢 Online" and not info.get("auth_failed"):
+            if (
+                uptime_cog
+                and info["status"] != "🟢 Online"
+                and not info.get("auth_failed")
+                and not info.get("maintenance")
+            ):
                 uptime_data = await asyncio.to_thread(uptime_cog.get_uptime_data)
                 info["uptime_24h"] = (
                     f"{uptime_data[0]:.1f}% ({uptime_cog.format_online_time(uptime_data[1])})"
@@ -257,6 +291,10 @@ class JellyfinCore(commands.Cog):
             # Create dashboard embed
             embed = await self._create_dashboard_embed(info)
             await self._update_dashboard_message(channel, embed, info)
+
+            in_maintenance = info.get("maintenance") is not None
+            if self._presence_in_maintenance not in (None, in_maintenance):
+                await self.update_status()
         except Exception as e:
             self.logger.error(f"Error updating dashboard: {e}")
 
