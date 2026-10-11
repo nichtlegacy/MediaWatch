@@ -80,7 +80,7 @@ Persisted in `./data`, survives every update:
 | `config.yaml` | Your configuration |
 | `user_mapping.json` | Username → display name mapping |
 | `dashboard_message_id.json` | Without it, the next start posts a **new** dashboard message and orphans the old one |
-| `runtime_state.json` | The media server's uptime baseline, so a bot restart does not reset the displayed uptime, plus the flag that the 1.x global commands were already cleared |
+| `runtime_state.json` | The media server's uptime baseline, so a bot restart does not reset the displayed uptime, a running maintenance window, plus the flag that the 1.x global commands were already cleared |
 | `config.json` | A 1.x leftover. Kept, never modified, and ignored once `config.yaml` exists |
 
 Not persisted, and safe to lose:

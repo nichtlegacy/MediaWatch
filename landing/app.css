@@ -251,6 +251,7 @@ h3 { font-size: 18px; line-height: 1.3; letter-spacing: -0.022em; font-weight: 6
 [data-tone="online"] { --tone: #2ecc71; }
 [data-tone="offline"] { --tone: #e74c3c; }
 [data-tone="auth"] { --tone: #e67e22; }
+[data-tone="maintenance"] { --tone: #3498db; }
 
 /* Concentric: 3px of padding around 16px-radius options gives the 19px outer. */
 .seg {
@@ -454,6 +455,9 @@ img.dc-avatar { display: block; border-radius: 50%; }
 /* Discord's Do Not Disturb: a red disc with a bar cut out. */
 .dc-status.dnd { background: #da3e44; }
 .dc-status.dnd::after { content: ""; position: absolute; left: 1px; right: 1px; top: 3px; height: 2px; border-radius: 1px; background: var(--d-lower); }
+/* Discord's Idle: a yellow crescent, a disc with its top left bitten off. */
+.dc-status.idle { background: #f0b232; }
+.dc-status.idle::after { content: ""; position: absolute; left: -2px; top: -2px; width: 7px; height: 7px; border-radius: 50%; background: var(--d-lower); }
 
 /* The member list only shows where the chat keeps its message width. */
 @container (max-width: 790px) { .dc-body { grid-template-columns: minmax(0, 1fr); } .dc-members { display: none; } }
@@ -549,6 +553,7 @@ img.dc-avatar { display: block; border-radius: 50%; }
 .embed-title a { color: var(--d-link); text-decoration: none; }
 .embed-title a:hover { text-decoration: underline; }
 .embed-desc { font-size: 14px; line-height: 18px; white-space: pre-line; }
+.dquote { margin: 0; padding-left: 12px; border-left: 4px solid #4e5058; border-radius: 2px; }
 .embed-thumb {
   grid-column: 2 !important; grid-row: 1 / 8;
   justify-self: end;
@@ -949,4 +954,10 @@ img.dc-avatar { display: block; border-radius: 50%; }
   .scope th, .scope td { padding: 12px; }
   .scope td { white-space: normal; }
   .feature-art .snip { zoom: 0.62; }
+}
+
+/* Four states no longer fit a phone with their dots; the thumb keeps the tone. */
+@media (max-width: 440px) {
+  .seg button { padding: 0 7px; font-size: 12.5px; }
+  .seg [data-server] .dot { display: none; }
 }

@@ -20,7 +20,8 @@ cogs/
       config_utils.py         paths, media_server.type, atomic file writes
       config_helper.py        stream_controls / stream_details config accessors
       env_validation.py       the startup check that stops the bot on missing credentials
-      runtime_state.py        the persisted uptime baseline
+      runtime_state.py        the persisted uptime baseline and maintenance window
+      maintenance.py          the maintenance window: start, end, auto-end
       presence.py             builds the bot presence from presence.*
       embeds.py, formatters.py
     plex/                   PlexCore cog, PlexMediaService, Plex + Tautulli clients, views
@@ -28,6 +29,7 @@ cogs/
   sabnzbd.py                optional download queue block
   uptime.py                 optional Uptime Kuma block
   user_mapping.py           /mapping commands
+  maintenance.py            /maintenance commands
 ```
 
 `shared/` never imports from `plex/` or `jellyfin/`; the dependency only points inward.
@@ -126,13 +128,13 @@ and the Uptime Kuma client, and that is the whole list. Everything persistent li
 | `config.yaml` | your configuration | you, or the 1.x conversion |
 | `user_mapping.json` | username → display name, keyed per platform | `/mapping`; created empty, or migrated from the flat 1.x format, when the cog loads |
 | `dashboard_message_id.json` | which Discord message to edit | the dashboard loop, on first post |
-| `runtime_state.json` | server uptime baseline per platform, and the one-time global command cleanup flag | the media service (uptime), `main.py` at startup (cleanup flag) |
+| `runtime_state.json` | server uptime baseline per platform, the running maintenance window, and the one-time global command cleanup flag | the media service (uptime), `/maintenance` and the auto-end (maintenance), `main.py` at startup (cleanup flag) |
 | `config.json` | 1.x configuration, read once and then ignored | never, it is left untouched |
 
 Discord itself holds the dashboard, so the bot only needs to remember which message it
 owns. Everything else it can re-derive from the media server on the next cycle. Losing
-`runtime_state.json` costs the displayed uptime baseline and one extra global-command
-cleanup call on the next start, nothing more.
+`runtime_state.json` costs the displayed uptime baseline, a running maintenance window and
+one extra global-command cleanup call on the next start, nothing more.
 
 Writes go through `write_text_atomic()` / `write_json_atomic()` in `shared/config_utils.py`:
 temp file in the same directory, `fsync`, `os.replace()`. A restart mid-write leaves

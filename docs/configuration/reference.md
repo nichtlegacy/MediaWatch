@@ -87,6 +87,8 @@ The bot's own status line in the member list, refreshed every five minutes.
 | `offline_text` | `"🔴 Server Offline!"` | both | Text while the server counts as offline |
 | `auth_failed_text` | `""` | both | Text when the server answers but rejects the credentials. Empty falls back to `offline_text` |
 | `stream_text` | `"{count} active Stream{s} 🟢"` | both | Text with active streams. `{count}` is the count, `{s}` an `s` unless it is exactly one |
+| `maintenance_text` | `"🛠️ Maintenance"` | both | Text while [`/maintenance`](../usage/commands.md#maintenance) is active. Empty falls back to `🛠️ Maintenance`, not to `offline_text` |
+| `maintenance_status` | `"idle"` | both | Circle while maintenance is active. Same values as `status` |
 
 An unknown `status` or `offline_status` falls back to `online`, an unknown `activity_type`
 to `custom`, both with a warning:
@@ -199,6 +201,26 @@ rather than being reported days off. The log says which:
 ```text
 Discarding the plex uptime baseline: bot was away for 542s (threshold 420s).
 ```
+
+## `maintenance`
+
+How the dashboard looks and ends while [`/maintenance`](../usage/commands.md#maintenance)
+is active.
+
+| Option | Default | Platform | Description |
+| --- | --- | --- | --- |
+| `thumbnail_url` | `""` | both | Embed thumbnail during maintenance. Empty keeps `dashboard.icon_url`. The example file sets the MediaWatch logo with a wrench, `https://mediawatch.nichtlegacy.com/logo-maintenance.png` |
+| `auto_end` | `true` | both | End maintenance on its own once the announced end has passed **and** the server answers again. `false` ends it only with `/maintenance end`. A maintenance started without a duration never ends on its own |
+
+```yaml
+maintenance:
+  thumbnail_url: ""
+  auto_end: true
+```
+
+`offline_threshold` and maintenance solve different problems. The threshold hides a short,
+unannounced outage. Maintenance announces planned work, says when it should be over and
+shows whether the server answers, for as long as the work takes.
 
 ## `global_stats`
 
