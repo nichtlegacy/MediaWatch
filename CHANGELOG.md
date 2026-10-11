@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.1.0](https://github.com/nichtlegacy/MediaWatch/compare/v2.0.0...v2.1.0) (2026-10-11)
+
+
+### Added
+
+* **dashboard:** announce maintenance instead of showing the server offline ([ec919b1](https://github.com/nichtlegacy/MediaWatch/commit/ec919b19942bd96e6b92224b8035bed7086ffb91))
+* **maintenance:** add /maintenance start, end and status ([ec919b1](https://github.com/nichtlegacy/MediaWatch/commit/ec919b19942bd96e6b92224b8035bed7086ffb91))
+
+
+### Fixed
+
+* **docker:** keep the code read-only for the bot however it was checked out ([53a3ed3](https://github.com/nichtlegacy/MediaWatch/commit/53a3ed3a4eb731d585935d618f19ddc0af531325))
+
+
+### Documentation
+
+* add the GitHub social preview to the brand assets ([55c4e3c](https://github.com/nichtlegacy/MediaWatch/commit/55c4e3cb401300e5bf730a07ab84c7687ca64e34))
+
 ## [2.0.0] - 2026-09-28
 
 The project was called **PlexWatch** and only spoke to Plex. It is now
