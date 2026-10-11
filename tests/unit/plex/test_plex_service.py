@@ -150,6 +150,9 @@ async def test_plex_service_uses_cached_online_state_within_threshold_after_succ
     status = await service.get_server_status()
 
     assert status.is_online is True
+    # Reported online from the cache, but it did not answer: maintenance mode
+    # must not call a server that is going down "reachable".
+    assert status.reachable is False
     assert status.library_stats == cached_stats
     assert status.stream_count == 0
 
@@ -189,7 +192,9 @@ async def test_plex_service_resets_offline_tracking_after_recovery(monkeypatch):
     recovered_status = await service.get_server_status()
 
     assert first_status.is_online is False
+    assert first_status.reachable is False
     assert recovered_status.is_online is True
+    assert recovered_status.reachable is True
     assert service._offline_since is None
     assert service._first_failure_time is None
 

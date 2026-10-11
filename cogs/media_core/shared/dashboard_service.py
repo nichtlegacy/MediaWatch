@@ -8,9 +8,10 @@ which config block holds the library sections.
 import discord
 import logging
 from typing import Dict, Any, List
-from datetime import datetime
+from datetime import datetime, timezone
 
 from .formatters import embed_field_budget, format_number, join_within_limit
+from .maintenance import MaintenanceWindow
 
 logger = logging.getLogger("mediawatch_bot.media_core.dashboard_service")
 
@@ -24,6 +25,16 @@ CREDENTIAL_VARS = {
 # Discord accepts at most 25 fields per embed. Leave room for the streams and
 # downloads block so a server with many libraries cannot break the update.
 MAX_LIBRARY_FIELDS = 15
+
+
+def _short_timestamp(value: float) -> str:
+    """Time over countdown, narrow enough for a third of the embed without wrapping.
+
+    The date is left out on purpose: the countdown says how far away it is, and
+    Discord shows the full date when you hover a timestamp.
+    """
+    moment = datetime.fromtimestamp(value, tz=timezone.utc)
+    return f"{discord.utils.format_dt(moment, style='t')}\n{discord.utils.format_dt(moment, style='R')}"
 
 
 def calculate_total_download_size(downloads: List[Dict[str, Any]]) -> str:
@@ -79,10 +90,20 @@ class DashboardService:
             Discord Embed with dashboard information
         """
         dashboard_config = self.config["dashboard"]
+        maintenance = info.get("maintenance")
         auth_failed = bool(info.get("auth_failed"))
         is_online = info["status"] == "🟢 Online"
+        thumbnail_url = dashboard_config["icon_url"]
 
-        if auth_failed:
+        # Maintenance wins over everything: the server being down or rejecting
+        # a token mid-maintenance is expected, not news.
+        if maintenance:
+            title = "Server is under maintenance :tools:"
+            # Yellow like a construction sign, from the same palette as the
+            # green, orange and red of the other states.
+            color = discord.Color.gold()
+            thumbnail_url = self.config.get("maintenance", {}).get("thumbnail_url") or thumbnail_url
+        elif auth_failed:
             title = "Server rejected the credentials! :no_entry:"
             color = discord.Color.orange()
         elif is_online:
@@ -95,10 +116,12 @@ class DashboardService:
         embed = discord.Embed(title=title, color=color, timestamp=discord.utils.utcnow())
 
         embed.set_author(name=dashboard_config["name"], icon_url=dashboard_config["icon_url"])
-        embed.set_thumbnail(url=dashboard_config["icon_url"])
+        embed.set_thumbnail(url=thumbnail_url)
         embed.set_footer(text="Last updated", icon_url=dashboard_config["footer_icon_url"])
 
-        if auth_failed:
+        if maintenance:
+            self._add_maintenance_fields(embed, info, maintenance)
+        elif auth_failed:
             self._add_auth_failure_field(embed)
         elif is_online:
             await self._add_embed_fields(embed, info)
@@ -123,6 +146,46 @@ class DashboardService:
             ),
             inline=False,
         )
+
+    def _add_maintenance_fields(
+        self, embed: discord.Embed, info: Dict[str, Any], maintenance: MaintenanceWindow
+    ) -> None:
+        """Say what is happening and until when, instead of "Offline".
+
+        Laid out like the online dashboard: the reason in a code block, then one
+        row of inline fields. The "R" timestamps count down in the client, so the
+        embed stays current between ticks without an edit.
+        """
+        if maintenance.reason:
+            # A backtick in the reason would close the code block early.
+            reason = maintenance.reason.replace("`", "'")
+            embed.add_field(name="Reason 📝", value=f"```{reason}```", inline=False)
+
+        embed.add_field(
+            name="Since 🕒", value=_short_timestamp(maintenance.started_at), inline=True
+        )
+        if maintenance.ends_at is None:
+            end_text = "Not announced"
+        else:
+            end_text = _short_timestamp(maintenance.ends_at)
+            if maintenance.overdue():
+                end_text += "\n⚠️ Taking longer than planned"
+        embed.add_field(name="Expected End ⏳", value=end_text, inline=True)
+
+        # Polling goes on during maintenance, so this shows the moment the
+        # server is back - the thing whoever does the work is waiting for.
+        if info.get("auth_failed"):
+            server_text = "🟠 Rejects the credentials"
+        elif info["status"] == "🟢 Online" and info.get("reachable", True):
+            server_text = "🟢 Reachable"
+        else:
+            server_text = "🔴 Not reachable"
+        embed.add_field(name="Server 📡", value=server_text, inline=True)
+
+        # Who is still watching before the server goes down. No empty-state
+        # line: "no streams" is the expected state here.
+        if info.get("active_users"):
+            self._add_streams_field(embed, info)
 
     def _add_offline_fields(self, embed: discord.Embed, info: Dict[str, Any]) -> None:
         """Add fields to the dashboard embed when the server is unreachable."""
@@ -221,18 +284,7 @@ class DashboardService:
             )
 
         if info["active_users"]:
-            stream_count = len(info["active_users"])
-
-            name = f"{stream_count} current Stream{'s' if stream_count != 1 else ''}:"
-            # Reserve room for the downloads block that may follow.
-            streams_text, shown = join_within_limit(
-                info["active_users"][:8],
-                limit=embed_field_budget(embed, name, reserve=600),
-            )
-            if shown < stream_count:
-                name += f" (showing {shown} of {stream_count})"
-            if streams_text:
-                embed.add_field(name=name, value=streams_text, inline=False)
+            self._add_streams_field(embed, info)
         else:
             embed.add_field(
                 name="Current Streams:", value="💤 *No active streams currently*", inline=False
@@ -286,3 +338,18 @@ class DashboardService:
                     value="💤 *No active downloads currently*",
                     inline=False,
                 )
+
+    def _add_streams_field(self, embed: discord.Embed, info: Dict[str, Any]) -> None:
+        """List the active streams, trimmed to what fits the embed."""
+        stream_count = len(info["active_users"])
+
+        name = f"{stream_count} current Stream{'s' if stream_count != 1 else ''}:"
+        # Reserve room for the downloads block that may follow.
+        streams_text, shown = join_within_limit(
+            info["active_users"][:8],
+            limit=embed_field_budget(embed, name, reserve=600),
+        )
+        if shown < stream_count:
+            name += f" (showing {shown} of {stream_count})"
+        if streams_text:
+            embed.add_field(name=name, value=streams_text, inline=False)

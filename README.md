@@ -212,6 +212,7 @@ All commands are restricted to the IDs in `DISCORD_AUTHORIZED_USERS` and publish
 | `/load`, `/unload`, `/reload` | Manage a single cog |
 | `/reload_config` | Re-read `config.yaml` without restarting |
 | `/mapping add·edit·remove·list` | Map media server usernames to display names |
+| `/maintenance start·end·status` | Announce planned work on the dashboard instead of showing the server offline |
 | `!sync [guild\|global\|copy\|clear\|clearglobal]` | Publish the command tree after local changes |
 
 `!sync` is the only reason the bot requests the Message Content intent.
@@ -245,6 +246,7 @@ cogs/media_core/
 cogs/sabnzbd.py             optional modules outside the platform core
 cogs/uptime.py
 cogs/user_mapping.py
+cogs/maintenance.py
 data/                       config and bot-managed state
 ```
 

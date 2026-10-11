@@ -203,6 +203,10 @@ class ServerStatus:
     offline_since: Optional[datetime] = None
     # Server answered but rejected our credentials (HTTP 401/403)
     auth_failed: bool = False
+    # Whether the server answered this check. is_online stays True for a while
+    # after it stops answering (server.offline_threshold); maintenance mode needs
+    # the real answer, or it would report a server that is down as reachable.
+    reachable: bool = True
 
     # Uptime tracking
     start_time: Optional[float] = None  # Unix timestamp

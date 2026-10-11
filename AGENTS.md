@@ -38,6 +38,7 @@ cogs/media_core/jellyfin/   JellyfinCore cog, JellyfinMediaService, Jellyfin cli
 cogs/sabnzbd.py             optional download block
 cogs/uptime.py              optional Uptime Kuma block
 cogs/user_mapping.py        /mapping commands
+cogs/maintenance.py         /maintenance commands
 data/config.yaml.example    the only tracked file in data/
 tests/unit/                 mirrors the package layout
 docs/                       MkDocs Material source; site/ is build output

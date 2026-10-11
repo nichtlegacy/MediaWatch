@@ -579,6 +579,7 @@ async def test_load_cogs_loads_every_cog_plus_the_configured_media_core(
     await main.load_cogs()
 
     assert set(fake_bot.extensions) == {
+        "cogs.maintenance",
         "cogs.sabnzbd",
         "cogs.uptime",
         "cogs.user_mapping",

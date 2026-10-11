@@ -99,12 +99,42 @@ which sent people debugging a media server that was running fine. It is also rep
 is not a transient failure. See
 [Troubleshooting](../operations/troubleshooting.md#the-dashboard-says-offline-although-the-server-is-running).
 
+## During maintenance
+
+Title **"Server is under maintenance 🛠️"**, yellow, started with
+[`/maintenance start`](commands.md#maintenance). It takes precedence over every other
+state: a server that is down or rejects the token during maintenance is expected, so the
+embed does not switch to red or orange. Libraries, downloads and Uptime Kuma history are
+dropped; what remains is:
+
+- `Reason 📝`: the reason in a code block, if you gave one.
+- A row of three fields:
+    - `Since 🕒` and `Expected End ⏳`: the time, with a countdown below. Both are
+      Discord timestamps, so they count live in every reader's own timezone; hover one
+      for the full date. Without a
+      duration the end reads `Not announced`; once it has passed,
+      `⚠️ Taking longer than planned` is added.
+    - `Server 📡`: whether the media server answers right now: `🟢 Reachable`,
+      `🔴 Not reachable` or `🟠 Rejects the credentials`. The bot keeps checking the
+      server during maintenance, so this flips the moment it is back. It ignores
+      `server.offline_threshold` and shows the actual answer.
+- The stream list, only while someone is still watching. The stream buttons stay, so you
+  can stop a stream before you take the server down.
+
+The thumbnail switches to `maintenance.thumbnail_url` when it is set; the author line and
+footer stay as they are.
+
+Maintenance with a duration ends on its own once the expected end has passed and the
+server answers again; the dashboard then shows the server as usual. It survives a restart
+of the bot, so a host reboot during the work does not drop the announcement.
+
 ## The bot presence
 
 The bot's status in the member list follows the same state, on its own five-minute loop:
 
 | State | Presence text | Status |
 | --- | --- | --- |
+| Maintenance | `presence.maintenance_text`, default `🛠️ Maintenance` | `presence.maintenance_status`, default Idle |
 | Offline | `presence.offline_text`, default `🔴 Server Offline!` | `presence.offline_status`, default Do Not Disturb |
 | Credentials rejected | `presence.auth_failed_text`, falling back to `presence.offline_text` | `presence.offline_status` |
 | Online, at least one stream | `presence.stream_text`, default `{count} active Stream{s} 🟢` | Online |
@@ -112,7 +142,8 @@ The bot's status in the member list follows the same state, on its own five-minu
 | Online, no streams, no libraries configured | `No streams or libraries configured` | Online |
 
 Two honest details: the presence loop runs every five minutes while the dashboard runs
-every minute, so the presence can lag behind the embed by up to five minutes. And by
+every minute, so the presence can lag behind the embed by up to five minutes. Maintenance
+is the exception: when it starts or ends, the dashboard brings the presence along at once. And by
 default a rejected token shows `offline_text` like a real outage; set
 `presence.auth_failed_text` to tell the two apart in the presence as well.
 

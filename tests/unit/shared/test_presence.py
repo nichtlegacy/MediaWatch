@@ -280,3 +280,33 @@ def test_an_unknown_suffix_is_skipped_not_guessed(caplog):
 
     assert activity.name == "No streams or libraries configured"
     assert "nonsense" in caplog.text
+
+
+@pytest.mark.parametrize(
+    ("is_online", "auth_failed"), [(False, False), (False, True), (True, False)]
+)
+def test_maintenance_wins_over_offline_and_rejected_credentials(is_online, auth_failed):
+    activity, status = build_presence(
+        _config(maintenance_text="🛠️ Wartung", maintenance_status="idle"),
+        is_online=is_online,
+        auth_failed=auth_failed,
+        active_streams=3,
+        library_stats=STATS,
+        in_maintenance=True,
+    )
+    assert activity.name == "🛠️ Wartung"
+    assert status is discord.Status.idle
+
+
+def test_an_empty_maintenance_text_does_not_fall_back_to_offline_text():
+    # Falling back like auth_failed_text does would announce "Offline" - the
+    # very thing maintenance mode is there to avoid.
+    activity, _ = build_presence(
+        _config(maintenance_text=""),
+        is_online=False,
+        auth_failed=False,
+        active_streams=0,
+        library_stats=STATS,
+        in_maintenance=True,
+    )
+    assert activity.name == "🛠️ Maintenance"

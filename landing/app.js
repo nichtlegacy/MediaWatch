@@ -53,9 +53,14 @@ const today = () => `Today at ${clock(new Date())}`;
 const discordTime = (unix, style) => {
   const date = new Date(unix * 1000);
   if (style === 'R') {
-    const minutes = Math.max(1, Math.round((Date.now() - date) / 60000));
-    return `${minutes} minute${minutes === 1 ? '' : 's'} ago`;
+    // Both directions: the offline embed counts up, the maintenance end down.
+    const delta = date - Date.now();
+    const minutes = Math.max(1, Math.round(Math.abs(delta) / 60000));
+    const hours = Math.round(minutes / 60);
+    const span = minutes < 60 ? `${minutes} minute${minutes === 1 ? '' : 's'}` : hours === 1 ? 'an hour' : `${hours} hours`;
+    return delta > 0 ? `in ${span}` : `${span} ago`;
   }
+  if (style === 't') return clock(date);
   return `${date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })} ${clock(date)}`;
 };
 
@@ -82,7 +87,7 @@ const md = (text) => {
     return keep(`<pre><code>${bars(code)}</code></pre>`);
   });
   s = s.replace(/`([^`\n]+)`/g, (_, c) => keep(`<code class="icode">${bars(c)}</code>`));
-  s = s.replace(/&lt;t:(\d+):([fR])&gt;/g, (_, t, st) => keep(`<span class="dts">${discordTime(+t, st)}</span>`));
+  s = s.replace(/&lt;t:(\d+):([fRt])&gt;/g, (_, t, st) => keep(`<span class="dts">${discordTime(+t, st)}</span>`));
   s = s.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" rel="noopener" target="_blank">$1</a>');
   s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
   s = s.replace(/\*([^*]+)\*/g, '<em>$1</em>');
@@ -311,6 +316,7 @@ const streamBlock = (s, platform) => {
 // The bot's custom status, as shared/presence.py builds it with the example
 // config: libraries while idle, the stream count while someone watches.
 const presenceText = () => {
+  if (state.server === 'maintenance') return '🛠️ Maintenance';
   if (state.server !== 'online') return '🔴 Server Offline!';
   const n = state.streams.length;
   if (n) return `${n} active Stream${n === 1 ? '' : 's'} 🟢`;
@@ -323,7 +329,7 @@ const presenceText = () => {
 const AVATAR_COLORS = ['#c2410c', '#7b5cd6', '#0e7490', '#b45309'];
 const membersHTML = () => {
   const people = STREAMS().map((s) => s.user);
-  const bot = `<li class="dc-member"><span class="dc-avatar bot"><img src="avatar.svg" alt=""><i class="dc-status${state.server === 'online' ? '' : ' dnd'}"></i></span>`
+  const bot = `<li class="dc-member"><span class="dc-avatar bot"><img src="avatar.svg" alt=""><i class="dc-status${{ online: '', maintenance: ' idle' }[state.server] ?? ' dnd'}"></i></span>`
     + `<span class="dc-member-name"><b>MediaWatch<em class="msg-tag">App</em></b><small>${esc(presenceText())}</small></span></li>`;
   const users = people.map((name, i) => `<li class="dc-member"><span class="dc-avatar" style="background:${AVATAR_COLORS[i % AVATAR_COLORS.length]}">${esc(name[0])}<i class="dc-status dnd"></i></span>`
     + `<span class="dc-member-name"><b>${esc(name)}</b></span></li>`).join('');
@@ -345,6 +351,17 @@ const dashboardEmbed = (platform, server, streams, opts = {}) => {
       name: 'Authentication failed:',
       value: `The server is reachable, but it rejected the credentials (HTTP 401/403).\nCheck **${key}** in your \`.env\` file and restart the bot. The media server itself is not down.`,
     }] };
+  }
+  if (server === 'maintenance') {
+    // As /maintenance start reason:… duration:1h30m leaves it, twelve minutes in.
+    const since = Math.floor(state.maintenanceSince / 1000);
+    const ends = since + 5400;
+    return { ...base, color: COLOR.gold, title: 'Server is under maintenance 🛠️', fields: [
+      { name: 'Reason 📝', value: '```Swapping a disk and updating the media server```' },
+      { name: 'Since 🕒', value: `<t:${since}:t>\n<t:${since}:R>`, inline: true },
+      { name: 'Expected End ⏳', value: `<t:${ends}:t>\n<t:${ends}:R>`, inline: true },
+      { name: 'Server 📡', value: '🔴 Not reachable', inline: true },
+    ] };
   }
   if (server === 'offline') {
     const since = Math.floor(state.offlineSince / 1000);
@@ -607,7 +624,9 @@ let nextId = 1;
 // Builds the channel from scratch. Switching platform keeps the chosen server
 // state and download queue; the first load starts from the defaults.
 const reset = (platform = 'plex', keep = false) => {
-  const kept = keep ? { server: state.server, downloads: state.downloads, offlineSince: state.offlineSince } : { server: 'online', downloads: false, offlineSince: Date.now() - 7 * 60000 };
+  const kept = keep
+    ? { server: state.server, downloads: state.downloads, offlineSince: state.offlineSince, maintenanceSince: state.maintenanceSince }
+    : { server: 'online', downloads: false, offlineSince: Date.now() - 7 * 60000, maintenanceSince: Date.now() - 12 * 60000 };
   Object.assign(state, { platform, streams: STREAMS(), uptimeMinutes: 4577 }, kept);
   messages.clear();
   list.innerHTML = '';
@@ -836,6 +855,7 @@ controls.addEventListener('click', (event) => {
   } else if (b.dataset.server) {
     state.server = b.dataset.server;
     if (state.server === 'offline') state.offlineSince = Date.now() - 7 * 60000;
+    if (state.server === 'maintenance') state.maintenanceSince = Date.now() - 12 * 60000;
     syncControls();
     refreshDashboard();
   }

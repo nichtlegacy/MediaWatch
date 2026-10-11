@@ -144,7 +144,7 @@ line above.
 | `config.yaml` | Your configuration |
 | `user_mapping.json` | Media server username → display name mapping |
 | `dashboard_message_id.json` | The ID of the dashboard message, so a restart edits it instead of posting a new one |
-| `runtime_state.json` | The server uptime baseline per platform, plus one-off flags such as whether the 1.x global commands were cleared |
+| `runtime_state.json` | The server uptime baseline per platform, a running maintenance window, plus one-off flags such as whether the 1.x global commands were cleared |
 
 The entrypoint copies missing defaults into the volume on every start and **never**
 overwrites an existing file, so your config survives image updates. A 1.x `config.json` in

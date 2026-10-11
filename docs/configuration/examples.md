@@ -290,3 +290,8 @@ server:
   # once regardless, as an auth failure rather than an outage.
   offline_threshold: 1800
 ```
+
+For planned work, use [`/maintenance start`](../usage/commands.md#maintenance) instead:
+the dashboard then says the server is under maintenance and until when, rather than
+staying green on cached data for half an hour. The threshold is for the outages you do not
+announce.

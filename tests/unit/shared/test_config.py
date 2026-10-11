@@ -1,5 +1,6 @@
 import json
 import logging
+from pathlib import Path
 
 import pytest
 
@@ -423,3 +424,32 @@ def test_failed_migration_points_at_the_console_in_docker(tmp_path, monkeypatch)
         check_legacy_config(str(config_yaml), str(config_json), str(user_mapping))
 
     assert str(exc.value) == "Config migration failed. Bot stopped. See the log output above."
+
+
+EXAMPLE_CONFIG = Path(__file__).resolve().parents[3] / "data" / "config.yaml.example"
+
+
+def _options_without_default(example, defaults, path=""):
+    missing = []
+    for key, value in example.items():
+        option = f"{path}.{key}" if path else key
+        if key not in defaults:
+            missing.append(option)
+        # An empty default block (plex.sections) holds user content, not options.
+        elif isinstance(value, dict) and isinstance(defaults[key], dict) and defaults[key]:
+            missing += _options_without_default(value, defaults[key], option)
+    return missing
+
+
+def test_every_option_in_the_example_has_a_default(tmp_path):
+    """An update must keep a 2.0 config.yaml working without an edit.
+
+    The deep merge only adds what load_config() knows. An option documented in
+    the example but missing there is absent from every config written before
+    it existed, and code reading it with config["block"]["key"] crashes the
+    first tick after the update.
+    """
+    example = yaml.safe_load(EXAMPLE_CONFIG.read_text(encoding="utf-8"))
+    defaults = load_config(str(tmp_path / "missing.yaml"))
+
+    assert _options_without_default(example, defaults) == []

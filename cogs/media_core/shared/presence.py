@@ -20,6 +20,11 @@ logger = logging.getLogger("mediawatch_bot.media_core.presence")
 # update when it is exceeded - the presence then silently stops changing.
 MAX_ACTIVITY_LENGTH = 128
 
+# Used when presence.maintenance_text is empty. Falling back to offline_text
+# like auth_failed_text does would announce the outage maintenance mode exists
+# to explain.
+DEFAULT_MAINTENANCE_TEXT = "🛠️ Maintenance"
+
 # Deliberately not the full ActivityType enum. "playing" and "competing" read
 # wrong for a media server, and "streaming" needs a Twitch or YouTube URL or
 # Discord renders it as "Playing" anyway.
@@ -117,12 +122,18 @@ def build_presence(
     library_stats: Dict[str, Dict[str, Any]],
     separator: str = ".",
     episode_label: str = "Episodes",
+    in_maintenance: bool = False,
 ) -> Optional[Tuple[discord.BaseActivity, discord.Status]]:
     """Return the activity and status to publish, or None when disabled."""
     if not config.get("enabled", True):
         return None
 
-    if auth_failed:
+    # Maintenance wins over everything: the server being down or rejecting a
+    # token mid-maintenance is expected, not news.
+    if in_maintenance:
+        text = config.get("maintenance_text") or DEFAULT_MAINTENANCE_TEXT
+        status_name = config.get("maintenance_status", "idle")
+    elif auth_failed:
         text = config.get("auth_failed_text") or config.get("offline_text", "")
         status_name = config.get("offline_status", "dnd")
     elif not is_online:

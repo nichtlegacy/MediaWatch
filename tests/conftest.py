@@ -50,3 +50,8 @@ def isolate_runtime_state(monkeypatch, tmp_path):
     # The refresh throttle is module state; one test's write must not suppress
     # the next test's.
     monkeypatch.setattr("cogs.media_core.shared.runtime_state._last_seen_refreshed", {})
+    # The maintenance window is cached in memory after the first read. Reset it
+    # so every test reads its own runtime_state.json.
+    from cogs.media_core.shared import maintenance
+
+    monkeypatch.setattr(maintenance, "_current", maintenance._UNLOADED)

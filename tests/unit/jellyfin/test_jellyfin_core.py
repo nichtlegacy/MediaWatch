@@ -1,3 +1,5 @@
+import asyncio
+import time
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
@@ -148,11 +150,17 @@ async def test_init_tolerates_blank_entries_in_authorized_users(monkeypatch):
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
-    ("status", "auth_failed", "fetched"),
-    [("🟢 Online", False, False), ("🔴 Offline", True, False), ("🔴 Offline", False, True)],
+    ("status", "auth_failed", "maintenance", "fetched"),
+    [
+        ("🟢 Online", False, None, False),
+        ("🔴 Offline", True, None, False),
+        ("🔴 Offline", False, None, True),
+        # The maintenance embed has no uptime fields either.
+        ("🔴 Offline", False, object(), False),
+    ],
 )
 async def test_update_dashboard_fetches_uptime_kuma_only_for_offline_embed(
-    status, auth_failed, fetched
+    status, auth_failed, maintenance, fetched
 ):
     # The uptime fields only render in the offline embed; fetching them while
     # online cost a socket.io login per tick for nothing.
@@ -163,10 +171,13 @@ async def test_update_dashboard_fetches_uptime_kuma_only_for_offline_embed(
     )
     rendered = []
     core = JellyfinCore.__new__(JellyfinCore)
+    core._dashboard_lock = asyncio.Lock()
     core.logger = SimpleNamespace(error=lambda *a, **k: None)
     core.bot = SimpleNamespace(get_cog=lambda name: uptime_cog if name == "Uptime" else None)
     core._resolve_channel = AsyncMock(return_value=object())
-    core.get_server_info = AsyncMock(return_value={"status": status, "auth_failed": auth_failed})
+    core.get_server_info = AsyncMock(
+        return_value={"status": status, "auth_failed": auth_failed, "maintenance": maintenance}
+    )
     core._create_dashboard_embed = AsyncMock(side_effect=lambda info: rendered.append(info))
     core._update_dashboard_message = AsyncMock()
 
@@ -176,3 +187,88 @@ async def test_update_dashboard_fetches_uptime_kuma_only_for_offline_embed(
     assert ("uptime_24h" in rendered[0]) is fetched
     if fetched:
         assert rendered[0]["uptime_24h"] == "99.0% (60m)"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(("reachable", "ended"), [(False, False), (True, True)])
+async def test_get_server_info_ends_overdue_maintenance_only_once_the_server_answers(
+    reachable, ended
+):
+    # Within server.offline_threshold a server that stopped answering is still
+    # reported online; ending the maintenance then would be premature.
+    from cogs.media_core.shared import maintenance
+    from cogs.media_core.shared.models import ServerStatus, ServerType
+
+    maintenance.start(started_by=1, duration=60, now=time.time() - 120)
+    core = JellyfinCore.__new__(JellyfinCore)
+    core.config = {"maintenance": {"auto_end": True}}
+    core.jellyfin_service = SimpleNamespace(
+        get_server_status=AsyncMock(
+            return_value=ServerStatus(
+                server_type=ServerType.JELLYFIN, is_online=True, reachable=reachable
+            )
+        )
+    )
+
+    info = await core.get_server_info()
+
+    assert info["reachable"] is reachable
+    assert (info["maintenance"] is None) is ended
+    assert (maintenance.current() is None) is ended
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("published", "in_maintenance", "refreshed"),
+    [(None, True, False), (False, True, True), (True, True, False), (True, False, True)],
+)
+async def test_update_dashboard_brings_the_presence_along_when_maintenance_changes(
+    published, in_maintenance, refreshed
+):
+    # The presence loop runs every five minutes; a start, end or auto-end seen
+    # by the dashboard must not leave it stale that long.
+    core = JellyfinCore.__new__(JellyfinCore)
+    core._dashboard_lock = asyncio.Lock()
+    core._presence_in_maintenance = published
+    core.logger = SimpleNamespace(error=lambda *a, **k: None)
+    core.bot = SimpleNamespace(get_cog=lambda name: None)
+    core._resolve_channel = AsyncMock(return_value=object())
+    core.get_server_info = AsyncMock(
+        return_value={
+            "status": "🔴 Offline",
+            "maintenance": object() if in_maintenance else None,
+        }
+    )
+    core._create_dashboard_embed = AsyncMock()
+    core._update_dashboard_message = AsyncMock()
+    core.update_status = AsyncMock()
+
+    await JellyfinCore.update_dashboard.coro(core)
+
+    assert core.update_status.await_count == (1 if refreshed else 0)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(("error", "recorded"), [(None, True), (ConnectionResetError(), None)])
+async def test_update_status_records_maintenance_only_once_the_presence_went_out(error, recorded):
+    # A failed change_presence must leave the mismatch visible, so the next
+    # dashboard tick retries instead of believing the presence is current.
+    core = JellyfinCore.__new__(JellyfinCore)
+    core.logger = SimpleNamespace(info=lambda *a, **k: None, error=lambda *a, **k: None)
+    core.config = {
+        "presence": {"enabled": True, "maintenance_text": "🛠️ Maintenance"},
+        "display": {"thousands_separator": ".", "episode_label": "Episodes"},
+    }
+    core.bot = SimpleNamespace(change_presence=AsyncMock(side_effect=error))
+    core.get_server_info = AsyncMock(
+        return_value={
+            "status": "🔴 Offline",
+            "active_users": [],
+            "library_stats": {},
+            "maintenance": object(),
+        }
+    )
+
+    await JellyfinCore.update_status.coro(core)
+
+    assert core._presence_in_maintenance is recorded
