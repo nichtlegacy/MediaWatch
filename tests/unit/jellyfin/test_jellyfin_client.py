@@ -205,3 +205,11 @@ async def test_connect_logs_info_only_on_a_state_change(caplog):
     client._get_session = make_connecting_client(200)._get_session
     await client.connect()
     assert connected_levels() == ["INFO"]
+
+
+def test_api_key_goes_in_authorization_header():
+    # Jellyfin 12 rejects X-Emby-Token with 401 (issue #30).
+    headers = JellyfinClient("http://jellyfin", "api-key")._get_headers()
+
+    assert headers["Authorization"] == 'MediaBrowser Token="api-key"'
+    assert "X-Emby-Token" not in headers

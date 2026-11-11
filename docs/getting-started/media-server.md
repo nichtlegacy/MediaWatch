@@ -94,7 +94,7 @@ internet buys nothing. No trailing slash.
     JELLYFIN_API_KEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
     ```
 
-    The key is sent as the `X-Emby-Token` header and has full API access and is not
+    The key is sent as an `Authorization: MediaBrowser Token="…"` header and has full API access and is not
     scoped to read-only. Delete it on that same page when you decommission the bot.
 
     !!! warning "Tautulli is Plex-only"
