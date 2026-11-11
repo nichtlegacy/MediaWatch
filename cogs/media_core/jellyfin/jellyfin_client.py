@@ -40,9 +40,13 @@ class JellyfinClient:
         self.logger = logger
 
     def _get_headers(self) -> Dict[str, str]:
-        """Get headers for API requests."""
+        """Authenticate with the `Authorization` header.
+
+        Jellyfin 12 answers the legacy `X-Emby-Token` header and `api_key` query
+        parameter with 401; this scheme works on every Jellyfin since 10.x.
+        """
         return {
-            "X-Emby-Token": self.api_key,
+            "Authorization": f'MediaBrowser Token="{self.api_key}"',
             "Content-Type": "application/json",
         }
 
