@@ -72,6 +72,9 @@ jobs:
     permissions:
       contents: read
       packages: write
+      # Sign the build provenance with a short-lived Sigstore certificate.
+      id-token: write
+      attestations: write
 
     steps:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -122,13 +125,33 @@ jobs:
     - name: Check container startup and file permissions
       run: bash scripts/check_container.sh mediawatch-ci:check
 
+    # Same inputs as the checked build, so every layer comes from its cache.
+    # Pushing from buildx instead of `docker push` keeps the attestations: an
+    # image loaded into the local Docker store cannot carry an SBOM.
     - name: Publish checked image
-      env:
-        IMAGE_TAGS: ${{ steps.docker_meta.outputs.tags }}
-      run: |
-        while IFS= read -r tag; do
-          docker push "$tag"
-        done <<< "$IMAGE_TAGS"
+      id: push
+      uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+      with:
+        context: .
+        push: true
+        sbom: true
+        tags: ${{ steps.docker_meta.outputs.tags }}
+        labels: ${{ steps.docker_meta.outputs.labels }}
+        cache-from: type=gha
+
+    # GHCR refuses uppercase, and the repository is "nichtlegacy/MediaWatch".
+    - name: Name the image for the attestation
+      run: echo "IMAGE_NAME=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
+
+    # Verify with: gh attestation verify oci://ghcr.io/nichtlegacy/mediawatch:<tag> -R nichtlegacy/MediaWatch
+    - name: Sign build provenance
+      uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+      with:
+        subject-name: ${{ env.IMAGE_NAME }}
+        subject-digest: ${{ steps.push.outputs.digest }}
+        # A storage record needs the attestation pushed to the registry and an
+        # extra token permission; the GitHub attestation API is enough here.
+        create-storage-record: false
 
   build_release:
     name: Publish release
@@ -140,6 +163,8 @@ jobs:
     permissions:
       contents: read
       packages: write
+      id-token: write
+      attestations: write
 
     steps:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -187,10 +212,30 @@ jobs:
     - name: Check container startup and file permissions
       run: bash scripts/check_container.sh mediawatch-ci:check
 
+    # Same inputs as the checked build, so every layer comes from its cache.
+    # Pushing from buildx instead of `docker push` keeps the attestations: an
+    # image loaded into the local Docker store cannot carry an SBOM.
     - name: Publish checked image
-      env:
-        IMAGE_TAGS: ${{ steps.docker_meta.outputs.tags }}
-      run: |
-        while IFS= read -r tag; do
-          docker push "$tag"
-        done <<< "$IMAGE_TAGS"
+      id: push
+      uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+      with:
+        context: .
+        push: true
+        sbom: true
+        tags: ${{ steps.docker_meta.outputs.tags }}
+        labels: ${{ steps.docker_meta.outputs.labels }}
+        cache-from: type=gha
+
+    # GHCR refuses uppercase, and the repository is "nichtlegacy/MediaWatch".
+    - name: Name the image for the attestation
+      run: echo "IMAGE_NAME=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
+
+    # Verify with: gh attestation verify oci://ghcr.io/nichtlegacy/mediawatch:<tag> -R nichtlegacy/MediaWatch
+    - name: Sign build provenance
+      uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+      with:
+        subject-name: ${{ env.IMAGE_NAME }}
+        subject-digest: ${{ steps.push.outputs.digest }}
+        # A storage record needs the attestation pushed to the registry and an
+        # extra token permission; the GitHub attestation API is enough here.
+        create-storage-record: false

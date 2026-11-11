@@ -63,7 +63,7 @@ user, checking imports and file permissions without Discord credentials.
 | **CI** (both hosts) | PRs to `main`/`dev`, pushes to those branches, or manual runs |
 | **Pages** (GitHub) | Publishes the checked `main` commit after successful CI |
 | **Prepare release** (GitHub) | Updates the release PR after successful `main` CI; calls the container workflow when a release is created |
-| **Publish container** (GitHub) | Publishes the checked branch commit after CI; releases and manual runs repeat Python and container checks |
+| **Publish container** (GitHub) | Publishes the checked branch commit after CI with an SBOM and a signed provenance attestation; releases and manual runs repeat Python and container checks |
 
 Forgejo CI also publishes `prod` and `sha-<12-character-commit>` after checks on
 `main`, except on PRs. GitHub's branch images use `latest` for `main` and `dev`

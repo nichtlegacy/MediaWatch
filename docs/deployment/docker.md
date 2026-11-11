@@ -13,6 +13,13 @@ The published image is `ghcr.io/nichtlegacy/mediawatch`:
 | `2.0.0` | a released version; later builds do not move it |
 | `sha-…` | one specific build |
 
+Images published after 2.1.1 carry an SBOM and a signed build provenance attestation.
+To check that an image was built by this repository's GitHub workflow, run:
+
+```bash
+gh attestation verify oci://ghcr.io/nichtlegacy/mediawatch:latest -R nichtlegacy/MediaWatch
+```
+
 This page assumes you already have the token, the Discord IDs and your media server
 credentials. If not, start with [Getting started](../getting-started/index.md).
 
