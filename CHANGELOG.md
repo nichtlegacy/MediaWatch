@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.1.1](https://github.com/nichtlegacy/MediaWatch/compare/v2.1.0...v2.1.1) (2026-11-11)
+
+
+### Fixed
+
+* **jellyfin:** authenticate with the Authorization header for Jellyfin 12 ([#31](https://github.com/nichtlegacy/MediaWatch/issues/31)) ([96150fc](https://github.com/nichtlegacy/MediaWatch/commit/96150fc2dde578ed4d282dd03139f3dcdee8e1de)), closes [#30](https://github.com/nichtlegacy/MediaWatch/issues/30)
+
 ## [2.1.0](https://github.com/nichtlegacy/MediaWatch/compare/v2.0.0...v2.1.0) (2026-10-11)
 
 
