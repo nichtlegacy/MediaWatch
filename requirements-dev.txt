@@ -1,4 +1,4 @@
 -r requirements.txt
 pytest>=9.2.0,<10.0
-pytest-asyncio>=1.4.1.post1,<2.0
-ruff>=0.17.4,<0.18
+pytest-asyncio>=1.5.0,<2.0
+ruff>=0.17.5,<0.18
